@@ -1,18 +1,21 @@
-anchor_version = "0.20.1"
+anchor_version = "0.24.2"
 solana_version = "1.9.5"
 
 [programs.localnet]
-voter_stake_registry = "4Q6WW2ouZ6V3iaNm56MTd5n2tnTm4C5fiH8miFHnAFHo"
+voter_stake_registry = "vsr3UuQXzqcPT4UTSNd7EnZMYAUsYCA3FuWHTooSq8X"
 
 [programs.devnet]
-voter_stake_registry = "4Q6WW2ouZ6V3iaNm56MTd5n2tnTm4C5fiH8miFHnAFHo"
+voter_stake_registry = "vsr3UuQXzqcPT4UTSNd7EnZMYAUsYCA3FuWHTooSq8X"
 
 [programs.mainnet]
-voter_stake_registry = "4Q6WW2ouZ6V3iaNm56MTd5n2tnTm4C5fiH8miFHnAFHo"
+voter_stake_registry = "vsr3UuQXzqcPT4UTSNd7EnZMYAUsYCA3FuWHTooSq8X"
 
 [provider]
 cluster = "mainnet"
 wallet = "~/.config/solana/id.json"
+
+[workspace]
+members = ["programs/voter-stake-registry"]
 
 [scripts]
 test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/*.ts"
