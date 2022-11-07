@@ -10,8 +10,7 @@ pub struct Registrar {
     pub governance_program_id: Pubkey,
     pub realm: Pubkey,
     pub realm_governing_token_mint: Pubkey,
-    pub realm_authority: Pubkey,
-    pub reserved1: [u8; 32],
+    pub realm_authority: Pubkey,  
 
     /// Storage for voting mints and their configuration.
     /// The length should be adjusted for one's use case.
@@ -20,6 +19,8 @@ pub struct Registrar {
     /// Debug only: time offset, to allow tests to move forward in time.
     pub time_offset: i64,
     pub bump: u8,
+
+    pub reserved1: [u8; 32],
     pub reserved2: [u8; 7],
     pub reserved3: [u64; 11], // split because `Default` does not support [u8; 95]
 }
