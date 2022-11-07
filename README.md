@@ -33,15 +33,18 @@ Users can:
 # Development
 
 ## Rust
-* Built and developed using - rust stable(`rustc 1.57.0 (f1edd0429 2021-11-29)`)
-* Run rust based tests - `cargo test-bpf`
-* `run-generate-anchor-types.sh` generates latest anchor types file and writes to `./voter_stake_registry.ts`
-* To install the typescript client, do - `yarn add @blockworks-foundation/voter-stake-registry-client`
-* usage
+
+- Built and developed using - rust stable(`rustc 1.57.0 (f1edd0429 2021-11-29)`)
+- Run rust based tests - `cargo test-bpf`
+- `run-generate-anchor-types.sh` generates latest anchor types file and writes to `./voter_stake_registry.ts`
+- To install the typescript client, do - `yarn add @blockworks-foundation/voter-stake-registry-client`
+- usage
 
 ## Node/Typescript
-* Built and developed using - node (`v16.13.1`)
-* Usage
+
+- Built and developed using - node (`v16.13.1`)
+- Usage
+
 ```
 import { Provider, Wallet } from '@project-serum/anchor';
 import { Connection, Keypair } from '@solana/web3.js';
@@ -57,19 +60,20 @@ async function main() {
 
 <img width="708" alt="image" src="https://user-images.githubusercontent.com/89031858/148725266-29459e80-623e-45c4-952d-5d9d1f0f15bc.png">
 
-
 # Deployment
 
 Users will likely want to compile their own voter-stake-registry and deploy it to an address they control.
 
 Before compiling, look at:
+
 - `Registrar::voting_mints`: The length of this array defines the number of configurable voting mints. Adjust as needed.
 
 ## Devnet
 
 For testing purposes, an instance of voter-stake-registry is deployed on devnet:
+
 ```
-voter-stake-registry:  4Q6WW2ouZ6V3iaNm56MTd5n2tnTm4C5fiH8miFHnAFHo
+voter-stake-registry:  vsr3UuQXzqcPT4UTSNd7EnZMYAUsYCA3FuWHTooSq8X
 spl-governance master: i7BqPFNUvB7yqwVeCRJHrtZVwRsZZNUJTdBm7Vg2cDb
 ```
 
@@ -79,6 +83,7 @@ spl-governance master: i7BqPFNUvB7yqwVeCRJHrtZVwRsZZNUJTdBm7Vg2cDb
 
 To start using the addin, make a governance proposal with the spl-governance
 realm authority to:
+
 1. Deploy an instance of the voter-stake-registry.
 2. Create a registrar for the realm with the `CreateRegistrar` instruction.
 3. Add voting token mints to the registrar by calling the `ConfigureVotingMint`
@@ -95,6 +100,7 @@ realm authority to:
 
    This creates a new deposit entry that can be used for depositing and
    withdrawing funds without lockup.
+
 3. Call `Deposit` for the voter and same deposit entry id to deposit funds.
 4. To vote, call `UpdateVoterWeightRecord` on the addin and then call `CastVote`
    on spl-governance in the same transaction, passing the voter weight record
@@ -130,13 +136,13 @@ Setting up a constant maturity lockup is easy:
 
 If you want access to the tokens again, you need to start the unlocking process
 by either
+
 - changing the whole deposit entry to `Cliff` with `ResetLockup`, or
 - creating a new `Cliff` deposit entry and transfering some locked tokens from
   your `Constant` deposit entry over with `InternalTransferLocked`.
 
 In both cases you'll need to wait for the cliff to be reached before being able
 to access the tokens again.
-
 
 # Instruction Overview
 
@@ -219,11 +225,10 @@ to access the tokens again.
 
   Debug instruction for advancing time in tests. Not usable.
 
-
 # License
 
 This code is currently not free to use while in development.
 
-
 # References:
-* [spl-governance](https://github.com/solana-labs/solana-program-library/tree/master/governance)
+
+- [spl-governance](https://github.com/solana-labs/solana-program-library/tree/master/governance)
