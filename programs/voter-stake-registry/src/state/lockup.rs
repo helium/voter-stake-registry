@@ -799,7 +799,12 @@ mod tests {
             reserved: [0; 29],
         };
         let curr_ts = start_ts + days_to_secs(t.curr_day);
-        let power = d.voting_power_locked(curr_ts, t.amount_deposited, MAX_SECS_LOCKED)?;
+        let power = d.voting_power_locked(
+          curr_ts, 
+          t.amount_deposited, 
+          MAX_SECS_LOCKED,
+          0
+        )?;
         assert_eq!(power, t.expected_voting_power);
         Ok(())
     }

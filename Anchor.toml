@@ -11,7 +11,7 @@ voter_stake_registry = "vsr3UuQXzqcPT4UTSNd7EnZMYAUsYCA3FuWHTooSq8X"
 voter_stake_registry = "vsr3UuQXzqcPT4UTSNd7EnZMYAUsYCA3FuWHTooSq8X"
 
 [provider]
-cluster = "mainnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

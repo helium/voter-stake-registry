@@ -86,18 +86,23 @@ impl DepositEntry {
     pub fn voting_power(&self, voting_mint_config: &VotingMintConfig, curr_ts: i64) -> Result<u64> {
         let baseline_vote_weight =
             voting_mint_config.baseline_vote_weight(self.amount_deposited_native)?;
+
         let max_locked_vote_weight =
             voting_mint_config.max_extra_lockup_vote_weight(self.amount_initially_locked_native)?;
+
         let locked_vote_weight = self.voting_power_locked(
             curr_ts,
             max_locked_vote_weight,
             voting_mint_config.lockup_saturation_secs,
+            voting_mint_config.minimum_lockup_saturation_secs
         )?;
+
         require_gte!(
             max_locked_vote_weight,
             locked_vote_weight,
             VsrError::InternalErrorBadLockupVoteWeight
         );
+
         baseline_vote_weight
             .checked_add(locked_vote_weight)
             .ok_or_else(|| error!(VsrError::VoterWeightOverflow))
@@ -109,6 +114,7 @@ impl DepositEntry {
         curr_ts: i64,
         max_locked_vote_weight: u64,
         lockup_saturation_secs: u64,
+        minimum_lockup_saturation_secs: u64,
     ) -> Result<u64> {
         if self.lockup.expired(curr_ts) || max_locked_vote_weight == 0 {
             return Ok(0);
@@ -119,17 +125,29 @@ impl DepositEntry {
                 curr_ts,
                 max_locked_vote_weight,
                 lockup_saturation_secs,
+                minimum_lockup_saturation_secs
             ),
             LockupKind::Monthly => self.voting_power_linear_vesting(
                 curr_ts,
                 max_locked_vote_weight,
                 lockup_saturation_secs,
+                minimum_lockup_saturation_secs
             ),
             LockupKind::Cliff => {
-                self.voting_power_cliff(curr_ts, max_locked_vote_weight, lockup_saturation_secs)
+                self.voting_power_cliff(
+                  curr_ts, 
+                  max_locked_vote_weight, 
+                  lockup_saturation_secs,
+                  minimum_lockup_saturation_secs
+                )
             }
             LockupKind::Constant => {
-                self.voting_power_cliff(curr_ts, max_locked_vote_weight, lockup_saturation_secs)
+                self.voting_power_cliff(
+                  curr_ts, 
+                  max_locked_vote_weight, 
+                  lockup_saturation_secs, 
+                  minimum_lockup_saturation_secs
+                )
             }
         }
     }
@@ -138,12 +156,14 @@ impl DepositEntry {
     /// they can to unlock as quickly as possible at `curr_ts`.
     ///
     /// Currently that means that Constant lockups get turned into Cliff lockups.
+        /// TODO: add logic for minimum/// 
     pub fn voting_power_locked_guaranteed(
         &self,
         curr_ts: i64,
         at_ts: i64,
         max_locked_vote_weight: u64,
         lockup_saturation_secs: u64,
+        minimum_lockup_saturation_secs: u64
     ) -> Result<u64> {
         let mut altered = self.clone();
 
@@ -159,15 +179,22 @@ impl DepositEntry {
         // Other lockup types don't need changes, because the user
         // cannot reduce their lockup strength.
 
-        altered.voting_power_locked(at_ts, max_locked_vote_weight, lockup_saturation_secs)
+        altered.voting_power_locked(
+          at_ts, 
+          max_locked_vote_weight, 
+          lockup_saturation_secs,
+          minimum_lockup_saturation_secs
+        )
     }
 
     /// Vote power contribution from funds with linear vesting.
+    /// TODO: add logic for minimum
     fn voting_power_cliff(
         &self,
         curr_ts: i64,
         max_locked_vote_weight: u64,
         lockup_saturation_secs: u64,
+        minimum_lockup_saturation_secs: u64
     ) -> Result<u64> {
         let remaining = min(self.lockup.seconds_left(curr_ts), lockup_saturation_secs);
         Ok(u64::try_from(
@@ -181,11 +208,13 @@ impl DepositEntry {
     }
 
     /// Vote power contribution from cliff-locked funds.
+    /// TODO: add logic for minimum
     fn voting_power_linear_vesting(
         &self,
         curr_ts: i64,
         max_locked_vote_weight: u64,
         lockup_saturation_secs: u64,
+        minimum_lockup_saturation_secs: u64,
     ) -> Result<u64> {
         let periods_left = self.lockup.periods_left(curr_ts)?;
         let periods_total = self.lockup.periods_total()?;
@@ -453,6 +482,7 @@ mod tests {
         // future, or at least more than lockup_saturation_secs in the future.
         let day: i64 = 86_400;
         let saturation: i64 = 5 * day;
+        let minimum_saturation: i64 = 0;
         let lockup_start = 10_000_000_000; // arbitrary point
         let deposit = DepositEntry {
             amount_deposited_native: 10_000,
@@ -474,9 +504,10 @@ mod tests {
             baseline_vote_weight_scaled_factor: 1_000_000_000, // 1x
             max_extra_lockup_vote_weight_scaled_factor: 1_000_000_000, // 1x
             lockup_saturation_secs: saturation as u64,
+            minimum_lockup_saturation_secs: minimum_saturation as u64,
             digit_shift: 0,
             reserved1: [0; 7],
-            reserved2: [0; 7],
+            reserved2: [0; 6],
         };
 
         let baseline_vote_weight =
@@ -525,6 +556,7 @@ mod tests {
         // Check that constant lockups are handled correctly.
         let day: i64 = 86_400;
         let saturation = (10 * day) as u64;
+        let minimum_saturation = 0 as u64;
         let start = 10_000_000_000; // arbitrary point
         let deposit = DepositEntry {
             amount_deposited_native: 10_000,
@@ -548,6 +580,7 @@ mod tests {
                     start + at_offset,
                     100,
                     saturation,
+                    minimum_saturation
                 )
                 .unwrap()
         };
@@ -567,5 +600,12 @@ mod tests {
         assert_eq!(v(50 * day, 80 * day), 0);
 
         Ok(())
+    }
+
+    #[test]
+    pub fn minimum_0_lockup_test() -> Result<()> {
+      assert_eq!(1, 0);
+
+      Ok(())
     }
 }
