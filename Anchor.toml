@@ -1,4 +1,4 @@
-anchor_version = "0.20.1"
+anchor_version = "0.25.0"
 solana_version = "1.9.5"
 
 [programs.localnet]
