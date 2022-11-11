@@ -59,11 +59,13 @@ impl Voter {
             .filter(|d| d.is_used)
             .try_fold(0u64, |sum, d| {
                 let mint_config = &registrar.voting_mints[d.voting_mint_config_idx as usize];
+                let min_locked_vote_weight = mint_config.min_lockup_vote_weight(d.amount_initially_locked_native)?;
                 let max_locked_vote_weight =
                     mint_config.max_extra_lockup_vote_weight(d.amount_initially_locked_native)?;
                 let amount = d.voting_power_locked_guaranteed(
                     curr_ts,
                     at_ts,
+                    min_locked_vote_weight,
                     max_locked_vote_weight,
                     mint_config.lockup_saturation_secs,
                     mint_config.minimum_lockup_saturation_secs

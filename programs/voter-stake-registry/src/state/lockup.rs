@@ -92,6 +92,10 @@ impl Lockup {
         self.seconds_left(curr_ts) == 0
     }
 
+    pub fn total_seconds(&self) -> u64 {
+        (self.end_ts - self.start_ts) as u64
+    }
+
     /// Number of seconds left in the lockup.
     /// May be more than end_ts-start_ts if curr_ts < start_ts.
     pub fn seconds_left(&self, mut curr_ts: i64) -> u64 {
@@ -801,7 +805,8 @@ mod tests {
         let curr_ts = start_ts + days_to_secs(t.curr_day);
         let power = d.voting_power_locked(
           curr_ts, 
-          t.amount_deposited, 
+          t.amount_deposited,
+          t.amount_deposited,
           MAX_SECS_LOCKED,
           0
         )?;

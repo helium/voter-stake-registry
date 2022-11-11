@@ -23,6 +23,11 @@ pub struct VotingMintConfig {
     /// In 1/SCALED_FACTOR_BASE units.
     pub baseline_vote_weight_scaled_factor: u64,
 
+    /// Vote weight factor for all funds in account if locked up for eactly minimum
+    ///
+    /// In 1/SCALED_FACTOR_BASE units.
+    pub min_lockup_vote_weight_scaled_factor: u64,
+    
     /// Maximum extra vote weight factor for lockups.
     ///
     /// This is the extra votes gained for lockups lasting lockup_saturation_secs or
@@ -34,7 +39,7 @@ pub struct VotingMintConfig {
 
     /// Number of seconds of lockup needed to reach the maximum lockup bonus.
     pub lockup_saturation_secs: u64,
-
+    
     /// Number of seconds of lockup needed to reach the baseline
     pub minimum_lockup_saturation_secs: u64,
 
@@ -43,9 +48,9 @@ pub struct VotingMintConfig {
 
     // Empty bytes for future upgrades.
     pub reserved1: [u8; 7],
-    pub reserved2: [u64; 6], // split because `Default` does not support [u8; 55]
+    pub reserved2: [u64; 5], // split because `Default` does not support [u8; 47]
 }
-const_assert!(std::mem::size_of::<VotingMintConfig>() == 2 * 32 + 4 * 8 + 1 + 55);
+const_assert!(std::mem::size_of::<VotingMintConfig>() == 2 * 32 + 5 * 8 + 1 + 47);
 const_assert!(std::mem::size_of::<VotingMintConfig>() % 8 == 0);
 
 impl VotingMintConfig {
@@ -82,15 +87,21 @@ impl VotingMintConfig {
     /// This vote_weight is a component for all funds in a voter account, no
     /// matter if locked up or not.
     pub fn baseline_vote_weight(&self, amount_native: u64) -> Result<u64> {
-        if self.minimum_lockup_saturation_secs > 0 {
-          return Ok(0)
-        }
-
         Self::apply_factor(
             self.digit_shift_native(amount_native)?,
             self.baseline_vote_weight_scaled_factor,
         )
     }
+
+    /// The vote weight a number of locked up native tokens can have.
+    /// When locked up for exactly the minimum_lockup_saturation_secs.
+    /// Will be multiplied with a factor between 0 and 1 for the lockup duration.
+    pub fn min_lockup_vote_weight(&self, amount_native: u64) -> Result<u64> {
+        Self::apply_factor(
+            self.digit_shift_native(amount_native)?,
+            self.min_lockup_vote_weight_scaled_factor,
+        )
+    }    
 
     /// The maximum extra vote weight a number of locked up native tokens can have.
     /// Will be multiplied with a factor between 0 and 1 for the lockup duration.
