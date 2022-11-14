@@ -68,7 +68,7 @@ impl Voter {
                     min_locked_vote_weight,
                     max_locked_vote_weight,
                     mint_config.lockup_saturation_secs,
-                    mint_config.minimum_lockup_saturation_secs
+                    mint_config.min_lockup_saturation_secs
                 )?;
                 Ok(sum.checked_add(amount).unwrap())
             })

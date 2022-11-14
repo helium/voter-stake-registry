@@ -50,17 +50,27 @@ impl DepositEntry {
     /// Returns the voting power for the deposit, giving locked tokens boosted
     /// voting power that scales linearly with the lockup time.
     ///
-    /// For each cliff-locked token, the vote weight is:
+    /// For each cliff-locked token, the vote weight is one of these:
     ///
     /// ```
     ///    voting_power = baseline_vote_weight
     ///                   + lockup_duration_factor * max_extra_lockup_vote_weight
     /// ```
-    ///
+    /// 
     /// with
     ///   - lockup_duration_factor = min(lockup_time_remaining / lockup_saturation_secs, 1)
     ///   - the VotingMintConfig providing the values for
-    ///     baseline_vote_weight, max_extra_lockup_vote_weight, lockup_saturation_secs
+    ///     baseline_vote_weight, max_extra_lockup_vote_weight, lockup_saturation_secs/// 
+    /// 
+    /// ```
+    ///    voting_power = baseline_vote_weight
+    ///                   + lockup_duration_factor * min_lockup_vote_weight
+    /// ```
+    /// 
+    /// with
+    ///   - lockup_duration_factor = min(lockup_time_remaining / min_lockup_saturation_secs, 1)
+    ///   - the VotingMintConfig providing the values for
+    ///     baseline_vote_weight, min_lockup_vote_weight, min_lockup_saturation_secs
     ///
     /// Linear vesting schedules can be thought of as a sequence of cliff-
     /// locked tokens and have the matching voting weight.
@@ -85,7 +95,7 @@ impl DepositEntry {
     /// voting_power_linear_vesting() below.
     ///
     pub fn voting_power(&self, voting_mint_config: &VotingMintConfig, curr_ts: i64) -> Result<u64> {
-        if voting_mint_config.minimum_lockup_saturation_secs > 0 {
+        if voting_mint_config.min_lockup_saturation_secs > 0 {
           if self.lockup.kind == LockupKind::None {
               return Ok(0);
           }
@@ -104,7 +114,7 @@ impl DepositEntry {
             min_locked_vote_weight,
             max_locked_vote_weight,
             voting_mint_config.lockup_saturation_secs,
-            voting_mint_config.minimum_lockup_saturation_secs
+            voting_mint_config.min_lockup_saturation_secs
         )?;
 
         require_gte!(
@@ -127,7 +137,7 @@ impl DepositEntry {
         lockup_saturation_secs: u64,
         minimum_lockup_saturation_secs: u64
     ) -> Result<u64> {
-        if self.lockup.expired(curr_ts) || max_locked_vote_weight == 0 {
+        if self.lockup.expired(curr_ts) || max_locked_vote_weight == 0 && min_locked_vote_weight == 0 {
             return Ok(0);
         }
 
@@ -220,7 +230,7 @@ impl DepositEntry {
                     .checked_mul(remaining as u128)
                     .unwrap()
                     .checked_div(minimum_lockup_saturation_secs as u128)
-                    .unwrap(),              
+                    .unwrap(),
             )
             .unwrap())
         } else {
@@ -535,7 +545,7 @@ mod tests {
             min_lockup_vote_weight_scaled_factor: 1_000_000_000, // 1x
             max_extra_lockup_vote_weight_scaled_factor: 1_000_000_000, // 1x
             lockup_saturation_secs: saturation as u64,
-            minimum_lockup_saturation_secs: minimum_saturation as u64,
+            min_lockup_saturation_secs: minimum_saturation as u64,
             digit_shift: 0,
             reserved1: [0; 7],
             reserved2: [0; 5],
@@ -663,7 +673,7 @@ mod tests {
             min_lockup_vote_weight_scaled_factor: 1_000_000_000, // 1x
             max_extra_lockup_vote_weight_scaled_factor: 100_000_000_000, // 100x
             lockup_saturation_secs: saturation as u64,
-            minimum_lockup_saturation_secs: minimum_saturation as u64,
+            min_lockup_saturation_secs: minimum_saturation as u64,
             digit_shift: 0,
             reserved1: [0; 7],
             reserved2: [0; 5],
@@ -742,9 +752,9 @@ mod tests {
             grant_authority: Pubkey::default(),
             baseline_vote_weight_scaled_factor: 0, // 0x
             min_lockup_vote_weight_scaled_factor: 1_000_000_000, // 1x
-            max_extra_lockup_vote_weight_scaled_factor: 0, // 100x
+            max_extra_lockup_vote_weight_scaled_factor: 100_000_000_000, // 100x
             lockup_saturation_secs: saturation as u64,
-            minimum_lockup_saturation_secs: minimum_saturation as u64,
+            min_lockup_saturation_secs: minimum_saturation as u64,
             digit_shift: 0,
             reserved1: [0; 7],
             reserved2: [0; 5],

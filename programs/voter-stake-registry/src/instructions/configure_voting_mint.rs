@@ -31,12 +31,22 @@ pub struct ConfigureVotingMint<'info> {
 /// This instruction can be called several times for the same mint and index to
 /// change the voting mint configuration.
 ///
-/// The vote weight for `amount` of native tokens will be
+/// The vote weight for `amount` of native tokens will be one of these
+/// 
+/// With min_lockup_saturation_secs == 0
 /// ```
 /// vote_weight =
 ///     amount * 10^(digit_shift)
 ///            * (baseline_vote_weight_scaled_factor/1e9
 ///               + lockup_duration_factor * max_extra_lockup_vote_weight_scaled_factor/1e9)
+/// ```
+/// 
+/// With min_lockup_saturation_secs > 0
+/// ```
+/// vote_weight =
+///     amount * 10^(digit_shift)
+///            * (baseline_vote_weight_scaled_factor/1e9
+///               + lockup_duration_factor * min_lockup_vote_weight_scaled_factor/1e9)
 /// ```
 /// where lockup_duration_factor is a value between 0 and 1, depending on how long
 /// the amount is locked up. It is 1 when the lockup duration is greater or equal
@@ -77,7 +87,7 @@ pub fn configure_voting_mint(
     min_lockup_vote_weight_scaled_factor: u64,
     max_extra_lockup_vote_weight_scaled_factor: u64,
     lockup_saturation_secs: u64,
-    minimum_lockup_saturation_secs: u64,
+    min_lockup_saturation_secs: u64,
     grant_authority: Option<Pubkey>,
 ) -> Result<()> {
     require_gt!(
@@ -115,7 +125,7 @@ pub fn configure_voting_mint(
         min_lockup_vote_weight_scaled_factor,
         max_extra_lockup_vote_weight_scaled_factor,
         lockup_saturation_secs,
-        minimum_lockup_saturation_secs,
+        min_lockup_saturation_secs,
         grant_authority: grant_authority.unwrap_or_default(),
         reserved1: [0; 7],
         reserved2: [0; 5],
