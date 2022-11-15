@@ -77,8 +77,10 @@ async fn test_deposit_daily_vesting() -> Result<(), TransportError> {
             &context.mints[0],
             0,
             1.0,
+            0.0,
             0.5,
             60 * 60 * 60, // 60h / 2.5d
+            0,
             None,
             None,
         )

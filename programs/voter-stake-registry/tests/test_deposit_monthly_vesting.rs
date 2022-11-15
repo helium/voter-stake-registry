@@ -77,7 +77,9 @@ async fn test_deposit_monthly_vesting() -> Result<(), TransportError> {
             0,
             1.0,
             0.0,
+            0.0,
             5 * 365 * 24 * 60 * 60,
+            0,
             None,
             None,
         )

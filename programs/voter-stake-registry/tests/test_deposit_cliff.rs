@@ -76,8 +76,10 @@ async fn test_deposit_cliff() -> Result<(), TransportError> {
             &context.mints[0],
             0,
             1.0,
+            0.0,
             1.0,
             2 * 24 * 60 * 60,
+            0,
             None,
             None,
         )
