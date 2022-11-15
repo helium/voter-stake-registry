@@ -3,7 +3,7 @@ import { PublicKey } from '@solana/web3.js';
 import { VoterStakeRegistry, IDL } from './voter_stake_registry';
 
 export const VSR_ID = new PublicKey(
-  'vsr3UuQXzqcPT4UTSNd7EnZMYAUsYCA3FuWHTooSq8X',
+  'vsrZ1Nfkxmt1hVaB7ftvcj7XpRoQ1YtCgPLajeaV6Uj',
 );
 
 export class VsrClient {

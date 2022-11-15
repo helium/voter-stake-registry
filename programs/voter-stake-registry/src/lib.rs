@@ -12,7 +12,7 @@ pub mod state;
 extern crate static_assertions;
 
 // The program address.
-declare_id!("vsr3UuQXzqcPT4UTSNd7EnZMYAUsYCA3FuWHTooSq8X");
+declare_id!("vsrZ1Nfkxmt1hVaB7ftvcj7XpRoQ1YtCgPLajeaV6Uj");
 
 /// # Introduction
 ///
