@@ -92,6 +92,7 @@ impl Lockup {
         self.seconds_left(curr_ts) == 0
     }
 
+    // Total seconds in lockup
     pub fn total_seconds(&self) -> u64 {
         (self.end_ts - self.start_ts) as u64
     }

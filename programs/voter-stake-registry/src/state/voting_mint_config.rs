@@ -26,7 +26,7 @@ pub struct VotingMintConfig {
     /// Vote weight factor for all funds in account if locked up for eactly minimum
     ///
     /// In 1/SCALED_FACTOR_BASE units.
-    pub min_lockup_vote_weight_scaled_factor: u64,
+    pub min_required_lockup_vote_weight_scaled_factor: u64,
     
     /// Maximum extra vote weight factor for lockups.
     ///
@@ -41,7 +41,7 @@ pub struct VotingMintConfig {
     pub lockup_saturation_secs: u64,
     
     /// Number of seconds of lockup needed to reach the baseline
-    pub min_lockup_saturation_secs: u64,
+    pub min_required_lockup_saturation_secs: u64,
 
     /// Number of digits to shift native amounts, applying a 10^digit_shift factor.
     pub digit_shift: i8,
@@ -94,12 +94,12 @@ impl VotingMintConfig {
     }
 
     /// The vote weight a number of locked up native tokens can have.
-    /// When locked up for exactly the min_lockup_saturation_secs.
+    /// When locked up for exactly the min_required_lockup_saturation_secs.
     /// Will be multiplied with a factor between 0 and 1 for the lockup duration.
-    pub fn min_lockup_vote_weight(&self, amount_native: u64) -> Result<u64> {
+    pub fn min_required_lockup_vote_weight(&self, amount_native: u64) -> Result<u64> {
         Self::apply_factor(
             self.digit_shift_native(amount_native)?,
-            self.min_lockup_vote_weight_scaled_factor,
+            self.min_required_lockup_vote_weight_scaled_factor,
         )
     }    
 

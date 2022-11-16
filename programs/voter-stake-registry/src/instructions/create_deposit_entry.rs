@@ -71,6 +71,9 @@ pub fn create_deposit_entry(
     // Get the exchange rate entry associated with this deposit.
     let mint_idx = registrar.voting_mint_config_index(ctx.accounts.deposit_mint.key())?;
 
+    // Get the mint config associated with this deposit.
+    let mint_config = registrar.voting_mints[mint_idx];
+
     // Get and set up the deposit entry.
     require_gt!(
         voter.deposits.len(),
@@ -87,13 +90,21 @@ pub fn create_deposit_entry(
         curr_ts
     };
 
+    let lockup = Lockup::new_from_periods(kind, curr_ts, start_ts, periods)?;
+
+    require_gte!(
+      lockup.total_seconds(),
+      mint_config.min_required_lockup_saturation_secs,
+      VsrError::DepositLockupLessThanVotingMintConfigMinRequired
+    );
+
     *d_entry = DepositEntry::default();
     d_entry.is_used = true;
     d_entry.voting_mint_config_idx = mint_idx as u8;
     d_entry.amount_deposited_native = 0;
     d_entry.amount_initially_locked_native = 0;
     d_entry.allow_clawback = allow_clawback;
-    d_entry.lockup = Lockup::new_from_periods(kind, curr_ts, start_ts, periods)?;
+    d_entry.lockup = lockup;
 
     Ok(())
 }

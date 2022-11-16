@@ -87,8 +87,8 @@ pub fn configure_voting_mint(
     max_extra_lockup_vote_weight_scaled_factor: u64,
     lockup_saturation_secs: u64,
     grant_authority: Option<Pubkey>,
-    min_lockup_vote_weight_scaled_factor: u64,
-    min_lockup_saturation_secs: u64,
+    min_required_lockup_vote_weight_scaled_factor: u64,
+    min_required_lockup_saturation_secs: u64,
 ) -> Result<()> {
     require_gt!(
         lockup_saturation_secs,
@@ -122,10 +122,10 @@ pub fn configure_voting_mint(
         mint,
         digit_shift,
         baseline_vote_weight_scaled_factor,
-        min_lockup_vote_weight_scaled_factor,
+        min_required_lockup_vote_weight_scaled_factor,
         max_extra_lockup_vote_weight_scaled_factor,
         lockup_saturation_secs,
-        min_lockup_saturation_secs,
+        min_required_lockup_saturation_secs,
         grant_authority: grant_authority.unwrap_or_default(),
         reserved1: [0; 7],
         reserved2: [0; 5],
