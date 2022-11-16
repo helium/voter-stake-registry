@@ -82,12 +82,12 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             &context.mints[0],
             0,
             1.0,
-            0.0,
             10.0, // no locking, so has no effect
             5 * 365 * 24 * 60 * 60,
-            0,
             None,
             None,
+            0.0,
+            0
         )
         .await;
 

@@ -100,12 +100,12 @@ impl AddinCookie {
         mint: &MintCookie,
         digit_shift: i8,
         baseline_vote_weight_scaled_factor: f64,
-        min_lockup_vote_weight_scaled_factor: f64,        
         max_extra_lockup_vote_weight_scaled_factor: f64,
         lockup_saturation_secs: u64,
-        min_lockup_saturation_secs: u64,
         grant_authority: Option<Pubkey>,
         other_mints: Option<&[Pubkey]>,
+        min_lockup_vote_weight_scaled_factor: f64,
+        min_lockup_saturation_secs: u64,
     ) -> VotingMintConfigCookie {
         let deposit_mint = mint.pubkey.unwrap();
 
@@ -115,12 +115,12 @@ impl AddinCookie {
                 digit_shift,
                 baseline_vote_weight_scaled_factor: (baseline_vote_weight_scaled_factor * 1e9)
                     as u64,
-                min_lockup_vote_weight_scaled_factor: (min_lockup_vote_weight_scaled_factor * 1e9) as u64,
                 max_extra_lockup_vote_weight_scaled_factor:
                     (max_extra_lockup_vote_weight_scaled_factor * 1e9) as u64,
                 lockup_saturation_secs,
-                min_lockup_saturation_secs,
                 grant_authority,
+                min_lockup_vote_weight_scaled_factor: (min_lockup_vote_weight_scaled_factor * 1e9) as u64,                
+                min_lockup_saturation_secs,                
             },
         );
 

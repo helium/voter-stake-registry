@@ -49,11 +49,11 @@ async fn test_voting() -> Result<(), TransportError> {
             0,
             2.0,
             0.0,
-            0.0,
             5 * 365 * 24 * 60 * 60,
+            None,
+            None,
+            0.0,
             0,
-            None,
-            None,
         )
         .await;
     let usdc_voting_mint = addin
@@ -66,11 +66,11 @@ async fn test_voting() -> Result<(), TransportError> {
             0,
             0.0,
             0.0,
-            0.0,
             5 * 365 * 24 * 60 * 60,
-            0,
             None,
             Some(&[context.mints[0].pubkey.unwrap()]),
+            0.0,
+            0,
         )
         .await;
 

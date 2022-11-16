@@ -84,11 +84,11 @@ pub fn configure_voting_mint(
     idx: u16,
     digit_shift: i8,
     baseline_vote_weight_scaled_factor: u64,
-    min_lockup_vote_weight_scaled_factor: u64,
     max_extra_lockup_vote_weight_scaled_factor: u64,
     lockup_saturation_secs: u64,
-    min_lockup_saturation_secs: u64,
     grant_authority: Option<Pubkey>,
+    min_lockup_vote_weight_scaled_factor: u64,
+    min_lockup_saturation_secs: u64,
 ) -> Result<()> {
     require_gt!(
         lockup_saturation_secs,

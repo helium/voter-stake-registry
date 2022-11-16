@@ -71,22 +71,22 @@ pub mod voter_stake_registry {
         idx: u16,
         digit_shift: i8,
         baseline_vote_weight_scaled_factor: u64,
-        min_lockup_vote_weight_scaled_factor: u64,
         max_extra_lockup_vote_weight_scaled_factor: u64,
         lockup_saturation_secs: u64,
-        min_lockup_saturation_secs: u64,
         grant_authority: Option<Pubkey>,
+        min_lockup_vote_weight_scaled_factor: u64,        
+        min_lockup_saturation_secs: u64,        
     ) -> Result<()> {
         instructions::configure_voting_mint(
             ctx,
             idx,
             digit_shift,
             baseline_vote_weight_scaled_factor,
-            min_lockup_vote_weight_scaled_factor,
             max_extra_lockup_vote_weight_scaled_factor,
             lockup_saturation_secs,
-            min_lockup_saturation_secs,
             grant_authority,
+            min_lockup_vote_weight_scaled_factor,
+            min_lockup_saturation_secs,
         )
     }
 
