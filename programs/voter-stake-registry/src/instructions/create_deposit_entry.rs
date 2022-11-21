@@ -92,11 +92,13 @@ pub fn create_deposit_entry(
 
     let lockup = Lockup::new_from_periods(kind, curr_ts, start_ts, periods)?;
 
-    require_gte!(
-      lockup.total_seconds(),
-      mint_config.min_required_lockup_saturation_secs,
-      VsrError::DepositLockupLessThanVotingMintConfigMinRequired
-    );
+    if kind != LockupKind::None {
+      require_gte!(
+        lockup.total_seconds(),
+        mint_config.min_required_lockup_saturation_secs,
+        VsrError::DepositLockupLessThanVotingMintConfigMinRequired
+      );
+    }
 
     *d_entry = DepositEntry::default();
     d_entry.is_used = true;
