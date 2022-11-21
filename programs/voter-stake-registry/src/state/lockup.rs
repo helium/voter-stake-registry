@@ -110,6 +110,15 @@ impl Lockup {
         }
     }
 
+    /// Number of seconds since the lockup expired.
+    /// Returns 0 if the lockup hasn't expired
+    pub fn seconds_since_expiry(&self, curr_ts: i64) -> u64 {
+        if !self.expired(curr_ts) {
+            return 0;
+        }
+        (curr_ts - self.end_ts) as u64
+    }
+
     /// Returns the number of periods left on the lockup.
     /// Returns 0 after lockup has expired and periods_total before start_ts.
     pub fn periods_left(&self, curr_ts: i64) -> Result<u64> {
