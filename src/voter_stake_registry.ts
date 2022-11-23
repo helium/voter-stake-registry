@@ -153,10 +153,6 @@ export type VoterStakeRegistry = {
           "type": "u64"
         },
         {
-          "name": "minLockupVoteWeightScaledFactor",
-          "type": "u64"
-        },
-        {
           "name": "maxExtraLockupVoteWeightScaledFactor",
           "type": "u64"
         },
@@ -165,14 +161,18 @@ export type VoterStakeRegistry = {
           "type": "u64"
         },
         {
-          "name": "minLockupSaturationSecs",
-          "type": "u64"
-        },
-        {
           "name": "grantAuthority",
           "type": {
             "option": "publicKey"
           }
+        },
+        {
+          "name": "minRequiredLockupVoteWeightScaledFactor",
+          "type": "u64"
+        },
+        {
+          "name": "minRequiredLockupSaturationSecs",
+          "type": "u64"
         }
       ]
     },
@@ -1183,7 +1183,7 @@ export type VoterStakeRegistry = {
             "type": "u64"
           },
           {
-            "name": "minLockupVoteWeightScaledFactor",
+            "name": "minRequiredLockupVoteWeightScaledFactor",
             "docs": [
               "Vote weight factor for all funds in account if locked up for eactly minimum",
               "",
@@ -1212,7 +1212,7 @@ export type VoterStakeRegistry = {
             "type": "u64"
           },
           {
-            "name": "minLockupSaturationSecs",
+            "name": "minRequiredLockupSaturationSecs",
             "docs": [
               "Number of seconds of lockup needed to reach the baseline"
             ],
@@ -1515,6 +1515,11 @@ export type VoterStakeRegistry = {
     {
       "code": 6037,
       "name": "InvalidTimestampArguments",
+      "msg": ""
+    },
+    {
+      "code": 6038,
+      "name": "DepositLockupLessThanVotingMintConfigMinRequired",
       "msg": ""
     }
   ]
@@ -1675,10 +1680,6 @@ export const IDL: VoterStakeRegistry = {
           "type": "u64"
         },
         {
-          "name": "minLockupVoteWeightScaledFactor",
-          "type": "u64"
-        },
-        {
           "name": "maxExtraLockupVoteWeightScaledFactor",
           "type": "u64"
         },
@@ -1687,14 +1688,18 @@ export const IDL: VoterStakeRegistry = {
           "type": "u64"
         },
         {
-          "name": "minLockupSaturationSecs",
-          "type": "u64"
-        },
-        {
           "name": "grantAuthority",
           "type": {
             "option": "publicKey"
           }
+        },
+        {
+          "name": "minRequiredLockupVoteWeightScaledFactor",
+          "type": "u64"
+        },
+        {
+          "name": "minRequiredLockupSaturationSecs",
+          "type": "u64"
         }
       ]
     },
@@ -2705,7 +2710,7 @@ export const IDL: VoterStakeRegistry = {
             "type": "u64"
           },
           {
-            "name": "minLockupVoteWeightScaledFactor",
+            "name": "minRequiredLockupVoteWeightScaledFactor",
             "docs": [
               "Vote weight factor for all funds in account if locked up for eactly minimum",
               "",
@@ -2734,7 +2739,7 @@ export const IDL: VoterStakeRegistry = {
             "type": "u64"
           },
           {
-            "name": "minLockupSaturationSecs",
+            "name": "minRequiredLockupSaturationSecs",
             "docs": [
               "Number of seconds of lockup needed to reach the baseline"
             ],
@@ -3037,6 +3042,11 @@ export const IDL: VoterStakeRegistry = {
     {
       "code": 6037,
       "name": "InvalidTimestampArguments",
+      "msg": ""
+    },
+    {
+      "code": 6038,
+      "name": "DepositLockupLessThanVotingMintConfigMinRequired",
       "msg": ""
     }
   ]
