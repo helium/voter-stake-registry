@@ -27,7 +27,7 @@ pub struct VotingMintConfig {
     ///
     /// In 1/SCALED_FACTOR_BASE units.
     pub min_required_lockup_vote_weight_scaled_factor: u64,
-    
+
     /// Maximum extra vote weight factor for lockups.
     ///
     /// This is the extra votes gained for lockups lasting lockup_saturation_secs or
@@ -39,7 +39,7 @@ pub struct VotingMintConfig {
 
     /// Number of seconds of lockup needed to reach the maximum lockup bonus.
     pub lockup_saturation_secs: u64,
-    
+
     /// Number of seconds of lockup needed to reach the baseline
     pub min_required_lockup_saturation_secs: u64,
 
@@ -101,7 +101,7 @@ impl VotingMintConfig {
             self.digit_shift_native(amount_native)?,
             self.min_required_lockup_vote_weight_scaled_factor,
         )
-    }    
+    }
 
     /// The maximum extra vote weight a number of locked up native tokens can have.
     /// Will be multiplied with a factor between 0 and 1 for the lockup duration.
