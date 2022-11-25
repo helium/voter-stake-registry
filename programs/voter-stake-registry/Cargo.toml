@@ -43,9 +43,9 @@ solana-program = "~1.10.29"
 static_assertions = "1.1"
 
 [dev-dependencies]
-solana-sdk = "~1.10.41"
-solana-program-test = "~1.10.41"
-solana-logger = "~1.10.41"
+solana-sdk = "~1.10.29"
+solana-program-test = "~1.10.29"
+solana-logger = "~1.10.29"
 spl-token = { version = "^3.0.0", features = ["no-entrypoint"] }
 spl-associated-token-account = { version = "^1.0.3", features = ["no-entrypoint"] }
 bytemuck = "^1.7.2"
