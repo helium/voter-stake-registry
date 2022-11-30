@@ -39,8 +39,8 @@ pub struct VotingMintConfig {
 
     /// Number of seconds of lockup needed to reach the maximum lockup bonus.
     pub lockup_saturation_secs: u64,
-
-    /// Number of seconds of lockup needed to reach the baseline
+    
+    /// Number of seconds of lockup needed to reach the min lockup vote weight
     pub min_required_lockup_saturation_secs: u64,
 
     /// Number of digits to shift native amounts, applying a 10^digit_shift factor.
