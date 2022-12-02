@@ -211,5 +211,11 @@ async fn test_deposit_constant() -> Result<(), TransportError> {
 
     withdraw(10000).await.unwrap();
 
+    let after_withdraw = get_balances(0).await;
+    assert_eq!(token, after_withdraw.token + after_withdraw.vault);
+    assert_eq!(after_withdraw.voter_weight, after_withdraw.vault);
+    assert_eq!(after_withdraw.vault, 0);
+    assert_eq!(after_withdraw.deposit, 0);
+
     Ok(())
 }
