@@ -224,7 +224,7 @@ impl DepositEntry {
     ) -> Result<u64> {
         let total_lockup_secs = self.lockup.total_seconds();
 
-        if total_lockup_secs <= min_required_lockup_saturation_secs {
+        if total_lockup_secs == min_required_lockup_saturation_secs {
             let remaining = min(self.lockup.seconds_left(curr_ts), min_required_lockup_saturation_secs);
 
             Ok(u64::try_from(
@@ -435,7 +435,6 @@ impl DepositEntry {
     pub fn resolve_vesting(&mut self, curr_ts: i64) -> Result<()> {
         let vested_amount = self.vested(curr_ts)?;
         require_gte!(
-            
           self.amount_initially_locked_native,
             vested_amount,
             VsrError::InternalProgramError

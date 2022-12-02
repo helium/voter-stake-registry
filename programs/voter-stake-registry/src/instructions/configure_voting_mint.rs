@@ -41,7 +41,7 @@ pub struct ConfigureVotingMint<'info> {
 ///               + lockup_duration_factor * max_extra_lockup_vote_weight_scaled_factor/1e9)
 /// ```
 /// 
-/// With min_lockup_saturation_secs > 0
+/// With min_lockup_saturation_secs > 0 && lockup.total_seconds == min_lockup_saturation_secs
 /// ```
 /// vote_weight =
 ///     amount * 10^(digit_shift)
