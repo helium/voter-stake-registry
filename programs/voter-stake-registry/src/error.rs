@@ -118,5 +118,8 @@ pub enum VsrError {
     InvalidTimestampArguments,
     // 6038 / 0x1796
     #[msg("")]
-    DepositLockupLessThanVotingMintConfigMinRequired
+    DepositLockupLessThanVotingMintConfigMinRequired,
+    // 6039 / 0x1797
+    #[msg("")]
+    VotingMintConfiguredWithInvalidScaledFactors
 }

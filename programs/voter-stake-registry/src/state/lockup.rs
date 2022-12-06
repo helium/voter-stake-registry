@@ -222,6 +222,16 @@ impl LockupKind {
         }
     }
 
+    pub fn is_none(&self) -> bool {
+        match self {
+            LockupKind::None => true,
+            LockupKind::Daily => false,
+            LockupKind::Monthly => false,
+            LockupKind::Cliff => false,
+            LockupKind::Constant => false,
+        }
+    }
+
     pub fn is_vesting(&self) -> bool {
         match self {
             LockupKind::None => false,

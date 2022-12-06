@@ -18,15 +18,19 @@ pub struct VotingMintConfig {
     /// The authority that is allowed to push grants into voters
     pub grant_authority: Pubkey,
 
-    /// Vote weight factor for all funds in the account, no matter if locked or not.
+    /// Vote weight factor for all funds in the account when unlocked
     ///
     /// In 1/SCALED_FACTOR_BASE units.
-    pub baseline_vote_weight_scaled_factor: u64,
-
-    /// Vote weight factor for all funds in account if locked up for eactly minimum
+    pub unlocked_vote_weight_scaled_factor: u64,
+    
+    /// Vote weight factor for all funds in the account when locked up
+    /// for minimum_required_lockup_secs
     ///
-    /// In 1/SCALED_FACTOR_BASE units.
-    pub min_required_lockup_vote_weight_scaled_factor: u64,
+    /// In 1/SCALED_FACTOR_BASE units.    
+    pub minimum_lockup_vote_weight_scaled_factor: u64,
+    
+    /// Number of seconds of lockup needed to reach the locked_baseline_vote_weight_scaled_factor.
+    pub minimum_required_lockup_secs: u64,
 
     /// Maximum extra vote weight factor for lockups.
     ///
@@ -34,15 +38,12 @@ pub struct VotingMintConfig {
     /// longer. Shorter lockups receive only a fraction of the maximum extra vote weight,
     /// based on lockup_time divided by lockup_saturation_secs.
     ///
-    /// In 1/SCALED_FACTOR_BASE units.
+    /// In 1/SCALED_FACTOR_BASE units.    
     pub max_extra_lockup_vote_weight_scaled_factor: u64,
 
     /// Number of seconds of lockup needed to reach the maximum lockup bonus.
     pub lockup_saturation_secs: u64,
     
-    /// Number of seconds of lockup needed to reach the min lockup vote weight
-    pub min_required_lockup_saturation_secs: u64,
-
     /// Number of digits to shift native amounts, applying a 10^digit_shift factor.
     pub digit_shift: i8,
 
@@ -82,26 +83,22 @@ impl VotingMintConfig {
         compute().ok_or_else(|| error!(VsrError::VoterWeightOverflow))
     }
 
-    /// The vote weight a deposit of a number of native tokens should have.
-    ///
-    /// This vote_weight is a component for all funds in a voter account, no
-    /// matter if locked up or not.
-    pub fn baseline_vote_weight(&self, amount_native: u64) -> Result<u64> {
+    /// The vote weight a deposit of a number of unlocked native tokens should have.
+    pub fn unlocked_vote_weight(&self, amount_native: u64) -> Result<u64> {
         Self::apply_factor(
             self.digit_shift_native(amount_native)?,
-            self.baseline_vote_weight_scaled_factor,
+            self.unlocked_vote_weight_scaled_factor,
         )
     }
 
-    /// The vote weight a number of locked up native tokens can have.
-    /// When locked up for exactly the min_required_lockup_saturation_secs.
-    /// Will be multiplied with a factor between 0 and 1 for the lockup duration.
-    pub fn min_required_lockup_vote_weight(&self, amount_native: u64) -> Result<u64> {
+    /// The vote weight a deposit of a number of locked native tokens should have
+    /// when locked for minimum_required_lockup_secs
+    pub fn minimum_lockup_vote_weight(&self, amount_native: u64) -> Result<u64> {
         Self::apply_factor(
             self.digit_shift_native(amount_native)?,
-            self.min_required_lockup_vote_weight_scaled_factor,
+            self.minimum_lockup_vote_weight_scaled_factor,
         )
-    }
+    }    
 
     /// The maximum extra vote weight a number of locked up native tokens can have.
     /// Will be multiplied with a factor between 0 and 1 for the lockup duration.
@@ -123,7 +120,7 @@ impl VotingMintConfig {
     /// want to use the grant / vesting / clawback functionality for non-voting
     /// tokens like USDC.
     pub fn grants_vote_weight(&self) -> bool {
-        self.baseline_vote_weight_scaled_factor > 0
+        self.minimum_lockup_vote_weight_scaled_factor > 0
             || self.max_extra_lockup_vote_weight_scaled_factor > 0
     }
 }

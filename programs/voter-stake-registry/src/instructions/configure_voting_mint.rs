@@ -83,21 +83,29 @@ pub fn configure_voting_mint(
     ctx: Context<ConfigureVotingMint>,
     idx: u16,
     digit_shift: i8,
-    baseline_vote_weight_scaled_factor: u64,
+    unlocked_vote_weight_scaled_factor: u64,
+    minimum_lockup_vote_weight_scaled_factor: u64,
+    minimum_required_lockup_secs: u64,
     max_extra_lockup_vote_weight_scaled_factor: u64,
     lockup_saturation_secs: u64,
     grant_authority: Option<Pubkey>,
-    min_required_lockup_vote_weight_scaled_factor: u64,
-    min_required_lockup_saturation_secs: u64,
 ) -> Result<()> {
     require_gt!(
         lockup_saturation_secs,
         0,
         VsrError::LockupSaturationMustBePositive
     );
+
+    require_gte!(
+      minimum_lockup_vote_weight_scaled_factor,
+      unlocked_vote_weight_scaled_factor,
+      VsrError::VotingMintConfiguredWithInvalidScaledFactors
+    );
+
     let registrar = &mut ctx.accounts.registrar.load_mut()?;
     let mint = ctx.accounts.mint.key();
     let idx = idx as usize;
+
     require_gt!(
         registrar.voting_mints.len(),
         idx,
@@ -121,11 +129,11 @@ pub fn configure_voting_mint(
     registrar.voting_mints[idx] = VotingMintConfig {
         mint,
         digit_shift,
-        baseline_vote_weight_scaled_factor,
-        min_required_lockup_vote_weight_scaled_factor,
+        unlocked_vote_weight_scaled_factor,
+        minimum_lockup_vote_weight_scaled_factor,
+        minimum_required_lockup_secs,
         max_extra_lockup_vote_weight_scaled_factor,
         lockup_saturation_secs,
-        min_required_lockup_saturation_secs,
         grant_authority: grant_authority.unwrap_or_default(),
         reserved1: [0; 7],
         reserved2: [0; 5],

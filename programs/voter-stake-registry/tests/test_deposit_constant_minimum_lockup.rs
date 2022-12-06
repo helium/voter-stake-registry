@@ -223,7 +223,7 @@ async fn test_deposit_cliff_minimum_lockup() -> Result<(), TransportError> {
         .set_time_offset(&registrar, &realm_authority, 6 * 24 * 60 * 60)
         .await;
 
-    withdraw(9001).await.expect_err("withdrew too much");    
+    withdraw(9001).await.expect_err("withdrew too much");
     withdraw(1).await.unwrap();
 
     // let after_withdraw = get_balances(0).await;
