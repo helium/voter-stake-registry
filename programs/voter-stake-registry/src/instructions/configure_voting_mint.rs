@@ -83,7 +83,6 @@ pub fn configure_voting_mint(
     ctx: Context<ConfigureVotingMint>,
     idx: u16,
     digit_shift: i8,
-    unlocked_vote_weight_scaled_factor: u64,
     minimum_lockup_vote_weight_scaled_factor: u64,
     minimum_required_lockup_secs: u64,
     max_extra_lockup_vote_weight_scaled_factor: u64,
@@ -96,10 +95,10 @@ pub fn configure_voting_mint(
         VsrError::LockupSaturationMustBePositive
     );
 
-    require_gte!(
+    require_gt!(
       minimum_lockup_vote_weight_scaled_factor,
-      unlocked_vote_weight_scaled_factor,
-      VsrError::VotingMintConfiguredWithInvalidScaledFactors
+      0,
+      VsrError::LockupMinimumVoteWeightMustBePositive
     );
 
     let registrar = &mut ctx.accounts.registrar.load_mut()?;
@@ -129,14 +128,13 @@ pub fn configure_voting_mint(
     registrar.voting_mints[idx] = VotingMintConfig {
         mint,
         digit_shift,
-        unlocked_vote_weight_scaled_factor,
         minimum_lockup_vote_weight_scaled_factor,
         minimum_required_lockup_secs,
         max_extra_lockup_vote_weight_scaled_factor,
         lockup_saturation_secs,
         grant_authority: grant_authority.unwrap_or_default(),
         reserved1: [0; 7],
-        reserved2: [0; 5],
+        reserved2: [0; 6],
     };
 
     // Check for overflow in vote weight

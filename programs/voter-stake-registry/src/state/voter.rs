@@ -32,15 +32,16 @@ impl Voter {
                 .map(|vp| sum.checked_add(vp).unwrap())
             })
     }
-
-    /// The vote weight available to the voter when ignoring any lockup effects
-    pub fn weight_baseline(&self, registrar: &Registrar) -> Result<u64> {
+    
+    /// The vote weight available to the voter when locked up at minimum
+    pub fn weight_minimum_lockup(&self, registrar: &Registrar) -> Result<u64> {
+        let curr_ts = registrar.clock_unix_timestamp();
         self.deposits
             .iter()
-            .filter(|d| d.is_used)
+            .filter(|d| d.is_used && !d.lockup.expired(curr_ts))
             .try_fold(0u64, |sum, d| {
                 registrar.voting_mints[d.voting_mint_config_idx as usize]
-                    .baseline_vote_weight(d.amount_deposited_native)
+                    .minimum_lockup_vote_weight(d.amount_deposited_native)
                     .map(|vp| sum.checked_add(vp).unwrap())
             })
     }
@@ -59,16 +60,16 @@ impl Voter {
             .filter(|d| d.is_used)
             .try_fold(0u64, |sum, d| {
                 let mint_config = &registrar.voting_mints[d.voting_mint_config_idx as usize];
-                let min_required_locked_vote_weight = mint_config.min_required_lockup_vote_weight(d.amount_initially_locked_native)?;
+                let minimum_lockup_vote_weight = mint_config.minimum_lockup_vote_weight(d.amount_initially_locked_native)?;
                 let max_locked_vote_weight =
                     mint_config.max_extra_lockup_vote_weight(d.amount_initially_locked_native)?;
                 let amount = d.voting_power_locked_guaranteed(
                     curr_ts,
                     at_ts,
-                    min_required_locked_vote_weight,
+                    mint_config.minimum_required_lockup_secs,
+                    minimum_lockup_vote_weight,
                     max_locked_vote_weight,
                     mint_config.lockup_saturation_secs,
-                    mint_config.min_required_lockup_saturation_secs
                 )?;
                 Ok(sum.checked_add(amount).unwrap())
             })

@@ -70,23 +70,21 @@ pub mod voter_stake_registry {
         ctx: Context<ConfigureVotingMint>,
         idx: u16,
         digit_shift: i8,
-        baseline_vote_weight_scaled_factor: u64,
+        minimum_lockup_vote_weight_scaled_factor: u64,        
+        minimum_required_lockup_secs: u64,                
         max_extra_lockup_vote_weight_scaled_factor: u64,
         lockup_saturation_secs: u64,
         grant_authority: Option<Pubkey>,
-        min_required_lockup_vote_weight_scaled_factor: u64,        
-        min_required_lockup_saturation_secs: u64,        
     ) -> Result<()> {
         instructions::configure_voting_mint(
             ctx,
             idx,
             digit_shift,
-            baseline_vote_weight_scaled_factor,
+            minimum_lockup_vote_weight_scaled_factor,
+            minimum_required_lockup_secs,
             max_extra_lockup_vote_weight_scaled_factor,
             lockup_saturation_secs,
             grant_authority,
-            min_required_lockup_vote_weight_scaled_factor,
-            min_required_lockup_saturation_secs,
         )
     }
 
@@ -122,32 +120,6 @@ pub mod voter_stake_registry {
 
     pub fn withdraw(ctx: Context<Withdraw>, deposit_entry_index: u8, amount: u64) -> Result<()> {
         instructions::withdraw(ctx, deposit_entry_index, amount)
-    }
-
-    pub fn grant(
-        ctx: Context<Grant>,
-        voter_bump: u8,
-        voter_weight_record_bump: u8,
-        kind: LockupKind,
-        start_ts: Option<u64>,
-        periods: u32,
-        allow_clawback: bool,
-        amount: u64,
-    ) -> Result<()> {
-        instructions::grant(
-            ctx,
-            voter_bump,
-            voter_weight_record_bump,
-            kind,
-            start_ts,
-            periods,
-            allow_clawback,
-            amount,
-        )
-    }
-
-    pub fn clawback(ctx: Context<Clawback>, deposit_entry_index: u8) -> Result<()> {
-        instructions::clawback(ctx, deposit_entry_index)
     }
 
     pub fn close_deposit_entry(

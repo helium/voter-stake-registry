@@ -88,7 +88,6 @@ pub fn deposit(ctx: Context<Deposit>, deposit_entry_index: u8, amount: u64) -> R
     // - add the new funds to the locked up token count, so they will vest over
     //   the remaining periods.
     let curr_ts = registrar.clock_unix_timestamp();
-    d_entry.resolve_vesting(curr_ts)?;
 
     // Deposit tokens into the vault and increase the lockup amount too.
     token::transfer(ctx.accounts.transfer_ctx(), amount)?;

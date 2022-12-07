@@ -31,7 +31,7 @@ pub fn log_voter_info(
     msg!("voter");
     emit!(VoterInfo {
         voting_power: voter.weight(registrar)?,
-        voting_power_baseline: voter.weight_baseline(registrar)?,
+        voting_power_minimum_lockup: voter.weight_minimum_lockup(registrar)?,
     });
 
     msg!("deposit_entries");
@@ -50,19 +50,7 @@ pub fn log_voter_info(
         let voting_mint_config = &registrar.voting_mints[deposit.voting_mint_config_idx as usize];
         let locking_info = (seconds_left > 0).then(|| LockingInfo {
             amount: deposit.amount_locked(curr_ts),
-            end_timestamp: (lockup.kind != LockupKind::Constant).then(|| end_ts),
-            vesting: lockup.kind.is_vesting().then(|| VestingInfo {
-                rate: deposit
-                    .amount_initially_locked_native
-                    .checked_div(periods_total)
-                    .unwrap(),
-                next_timestamp: end_ts.saturating_sub(
-                    periods_left
-                        .saturating_sub(1)
-                        .checked_mul(lockup.kind.period_secs())
-                        .unwrap(),
-                ),
-            }),
+            end_timestamp: (lockup.kind != LockupKind::Constant).then(|| end_ts)
         });
 
         emit!(DepositEntryInfo {
@@ -70,8 +58,7 @@ pub fn log_voter_info(
             voting_mint_config_index: deposit.voting_mint_config_idx,
             unlocked: deposit.amount_unlocked(curr_ts),
             voting_power: deposit.voting_power(voting_mint_config, curr_ts)?,
-            voting_power_baseline: voting_mint_config
-                .baseline_vote_weight(deposit.amount_deposited_native)?,
+            voting_power_minimum_lockup: voting_mint_config.minimum_lockup_vote_weight(deposit.amount_deposited_native)?,
             locking: locking_info,
         });
     }

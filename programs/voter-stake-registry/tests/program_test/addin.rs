@@ -99,13 +99,12 @@ impl AddinCookie {
         index: u16,
         mint: &MintCookie,
         digit_shift: i8,
-        baseline_vote_weight_scaled_factor: f64,
+        minimum_lockup_vote_weight_scaled_factor: f64,
+        minimum_required_lockup_secs: u64,        
         max_extra_lockup_vote_weight_scaled_factor: f64,
         lockup_saturation_secs: u64,
         grant_authority: Option<Pubkey>,
-        other_mints: Option<&[Pubkey]>,
-        min_required_lockup_vote_weight_scaled_factor: f64,
-        min_required_lockup_saturation_secs: u64,
+        other_mints: Option<&[Pubkey]>,    
     ) -> VotingMintConfigCookie {
         let deposit_mint = mint.pubkey.unwrap();
 
@@ -113,14 +112,13 @@ impl AddinCookie {
             &voter_stake_registry::instruction::ConfigureVotingMint {
                 idx: index,
                 digit_shift,
-                baseline_vote_weight_scaled_factor: (baseline_vote_weight_scaled_factor * 1e9)
-                    as u64,
+                minimum_lockup_vote_weight_scaled_factor: (minimum_lockup_vote_weight_scaled_factor * 1e9)
+                    as u64,                
+                minimum_required_lockup_secs,
                 max_extra_lockup_vote_weight_scaled_factor:
                     (max_extra_lockup_vote_weight_scaled_factor * 1e9) as u64,
                 lockup_saturation_secs,
-                grant_authority,
-                min_required_lockup_vote_weight_scaled_factor: (min_required_lockup_vote_weight_scaled_factor * 1e9) as u64,
-                min_required_lockup_saturation_secs,                
+                grant_authority
             },
         );
 
@@ -320,135 +318,6 @@ impl AddinCookie {
 
         // clone the secrets
         let signer = Keypair::from_base58_string(&authority.to_base58_string());
-
-        self.solana
-            .process_transaction(&instructions, Some(&[&signer]))
-            .await
-    }
-
-    #[allow(dead_code)]
-    pub async fn grant(
-        &self,
-        registrar: &RegistrarCookie,
-        voter_authority: Pubkey,
-        voting_mint: &VotingMintConfigCookie,
-        lockup_kind: voter_stake_registry::state::LockupKind,
-        start_ts: Option<u64>,
-        periods: u32,
-        allow_clawback: bool,
-        amount: u64,
-        deposit_token: Pubkey,
-        token_authority: &Keypair,
-        grant_authority: &Keypair,
-    ) -> std::result::Result<VoterCookie, TransportError> {
-        let (voter, voter_bump) = Pubkey::find_program_address(
-            &[
-                &registrar.address.to_bytes(),
-                b"voter".as_ref(),
-                &voter_authority.to_bytes(),
-            ],
-            &self.program_id,
-        );
-        let (voter_weight_record, voter_weight_record_bump) = Pubkey::find_program_address(
-            &[
-                &registrar.address.to_bytes(),
-                b"voter-weight-record".as_ref(),
-                &voter_authority.to_bytes(),
-            ],
-            &self.program_id,
-        );
-        let voter_cookie = VoterCookie {
-            address: voter,
-            authority: voter_authority,
-            voter_weight_record,
-            token_owner_record: Pubkey::new_unique(), // don't have it
-        };
-        let vault = voter_cookie.vault_address(&voting_mint);
-
-        let data = anchor_lang::InstructionData::data(&voter_stake_registry::instruction::Grant {
-            voter_bump,
-            voter_weight_record_bump,
-            kind: lockup_kind,
-            start_ts,
-            periods,
-            allow_clawback,
-            amount,
-        });
-
-        let accounts = anchor_lang::ToAccountMetas::to_account_metas(
-            &voter_stake_registry::accounts::Grant {
-                registrar: registrar.address,
-                voter,
-                voter_authority,
-                voter_weight_record,
-                vault,
-                deposit_token,
-                token_authority: token_authority.pubkey(),
-                grant_authority: grant_authority.pubkey(),
-                payer: token_authority.pubkey(),
-                deposit_mint: voting_mint.mint.pubkey.unwrap(),
-                system_program: solana_sdk::system_program::id(),
-                token_program: spl_token::id(),
-                associated_token_program: spl_associated_token_account::id(),
-                rent: solana_program::sysvar::rent::id(),
-            },
-            None,
-        );
-
-        let instructions = vec![Instruction {
-            program_id: self.program_id,
-            accounts,
-            data,
-        }];
-
-        // clone the secrets
-        let signer1 = Keypair::from_base58_string(&grant_authority.to_base58_string());
-        let signer2 = Keypair::from_base58_string(&token_authority.to_base58_string());
-
-        self.solana
-            .process_transaction(&instructions, Some(&[&signer1, &signer2]))
-            .await?;
-
-        Ok(voter_cookie)
-    }
-
-    #[allow(dead_code)]
-    pub async fn clawback(
-        &self,
-        registrar: &RegistrarCookie,
-        voter: &VoterCookie,
-        voting_mint: &VotingMintConfigCookie,
-        realm_authority: &Keypair,
-        token_address: Pubkey,
-        deposit_entry_index: u8,
-    ) -> std::result::Result<(), TransportError> {
-        let vault = voter.vault_address(&voting_mint);
-
-        let data =
-            anchor_lang::InstructionData::data(&voter_stake_registry::instruction::Clawback {
-                deposit_entry_index,
-            });
-
-        let accounts = anchor_lang::ToAccountMetas::to_account_metas(
-            &voter_stake_registry::accounts::Clawback {
-                registrar: registrar.address,
-                voter: voter.address,
-                vault,
-                destination: token_address,
-                realm_authority: realm_authority.pubkey(),
-                token_program: spl_token::id(),
-            },
-            None,
-        );
-
-        let instructions = vec![Instruction {
-            program_id: self.program_id,
-            accounts,
-            data,
-        }];
-
-        // clone the secrets
-        let signer = Keypair::from_base58_string(&realm_authority.to_base58_string());
 
         self.solana
             .process_transaction(&instructions, Some(&[&signer]))

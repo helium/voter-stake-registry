@@ -5,16 +5,8 @@ use anchor_lang::prelude::*;
 pub struct VoterInfo {
     /// Voter's total voting power
     pub voting_power: u64,
-    /// Voter's total voting power, when ignoring any effects from lockup
-    pub voting_power_baseline: u64,
-}
-
-#[derive(AnchorSerialize, AnchorDeserialize, Debug)]
-pub struct VestingInfo {
-    /// Amount of tokens vested each period
-    pub rate: u64,
-    /// Time of the next upcoming vesting
-    pub next_timestamp: u64,
+    /// Voter's total voting power, when locked up for minimum
+    pub voting_power_minimum_lockup: u64
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Debug)]
@@ -23,8 +15,6 @@ pub struct LockingInfo {
     pub amount: u64,
     /// Time at which the lockup fully ends (None for Constant lockup)
     pub end_timestamp: Option<u64>,
-    /// Information about vesting, if any
-    pub vesting: Option<VestingInfo>,
 }
 
 #[event]
@@ -36,8 +26,8 @@ pub struct DepositEntryInfo {
     pub unlocked: u64,
     /// Voting power implied by this deposit entry
     pub voting_power: u64,
-    /// Voting power without any adjustments for lockup
-    pub voting_power_baseline: u64,
+    /// Voting power when locked up for minimum
+    pub voting_power_minimum_lockup: u64,
     /// Information about locking, if any
     pub locking: Option<LockingInfo>,
 }

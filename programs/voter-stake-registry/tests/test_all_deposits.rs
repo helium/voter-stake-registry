@@ -43,12 +43,11 @@ async fn test_all_deposits() -> Result<(), TransportError> {
             &context.mints[0],
             0,
             1.0,
+            0,
             0.0,
             5 * 365 * 24 * 60 * 60,
             None,
             None,
-            0.0,
-            0,          
         )
         .await;
 

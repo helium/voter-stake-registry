@@ -121,5 +121,5 @@ pub enum VsrError {
     DepositLockupLessThanVotingMintConfigMinRequired,
     // 6039 / 0x1797
     #[msg("")]
-    VotingMintConfiguredWithInvalidScaledFactors
+    LockupMinimumVoteWeightMustBePositive
 }

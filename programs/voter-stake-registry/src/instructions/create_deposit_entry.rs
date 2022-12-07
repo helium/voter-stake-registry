@@ -95,7 +95,7 @@ pub fn create_deposit_entry(
     if kind != LockupKind::None {
       require_gte!(
         lockup.total_seconds(),
-        mint_config.min_required_lockup_saturation_secs,
+        mint_config.minimum_required_lockup_secs,
         VsrError::DepositLockupLessThanVotingMintConfigMinRequired
       );
     }

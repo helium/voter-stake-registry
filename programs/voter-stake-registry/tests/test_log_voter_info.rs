@@ -64,12 +64,11 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
             &context.mints[0],
             0,
             1.0,
+            0,
             1.0,
             365 * 24 * 60 * 60,
             None,
             None,
-            0.0,
-            0,
         )
         .await;
 
@@ -116,7 +115,7 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
 
     let voter_event =
         deserialize_event::<voter_stake_registry::events::VoterInfo>(&data_log[0]).unwrap();
-    assert_eq!(voter_event.voting_power_baseline, 12000);
+    assert_eq!(voter_event.voting_power_minimum_lockup, 12000);
     assert_eq!(
         voter_event.voting_power,
         12000 + (1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11) * 1000 / 12
@@ -129,19 +128,12 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
     assert_eq!(deposit_event.unlocked, 1000);
     assert_eq!(deposit_event.voting_power, voter_event.voting_power);
     assert_eq!(
-        deposit_event.voting_power_baseline,
-        voter_event.voting_power_baseline
+        deposit_event.voting_power_minimum_lockup,
+        voter_event.voting_power_minimum_lockup
     );
     assert!(deposit_event.locking.is_some());
     let locking = deposit_event.locking.unwrap();
-    assert!(locking.vesting.is_some());
-    let vesting = locking.vesting.unwrap();
     assert_eq!(locking.amount, 11000);
-    assert_eq!(vesting.rate, 1000);
-    assert_eq!(
-        locking.end_timestamp.unwrap(),
-        vesting.next_timestamp + 10 * (365 * 24 * 60 * 60 / 12)
-    );
 
     Ok(())
 }

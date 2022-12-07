@@ -76,12 +76,11 @@ async fn test_deposit_cliff() -> Result<(), TransportError> {
             &context.mints[0],
             0,
             1.0,
+            0,
             1.0,
             2 * 24 * 60 * 60,
             None,
             None,
-            0.0,
-            0,
         )
         .await;
 
@@ -147,7 +146,7 @@ async fn test_deposit_cliff() -> Result<(), TransportError> {
 
     let after_deposit = get_balances(0).await;
     assert_eq!(token, after_deposit.token + after_deposit.vault);
-    assert_eq!(after_deposit.voter_weight, 2 * after_deposit.vault); // saturated locking bonus
+    assert_eq!(after_deposit.voter_weight, 3 * after_deposit.vault); // saturated locking bonus
     assert_eq!(after_deposit.vault, 9000);
     assert_eq!(after_deposit.deposit, 9000);
 
@@ -187,7 +186,7 @@ async fn test_deposit_cliff() -> Result<(), TransportError> {
 
     let after_cliff = get_balances(0).await;
     assert_eq!(token, after_cliff.token + after_cliff.vault);
-    assert_eq!(after_cliff.voter_weight, after_cliff.vault);
+    assert_eq!(after_cliff.voter_weight, 0);
     assert_eq!(after_cliff.vault, 10000);
     assert_eq!(after_cliff.deposit, 10000);
 

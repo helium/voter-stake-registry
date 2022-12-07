@@ -55,7 +55,7 @@ impl Registrar {
                     .ok_or_else(|| error!(VsrError::VotingMintNotFound))?;
                 let mint = Account::<Mint>::try_from(mint_account)?;
                 sum = sum
-                    .checked_add(voting_mint_config.baseline_vote_weight(mint.supply)?)
+                    .checked_add(voting_mint_config.minimum_lockup_vote_weight(mint.supply)?)
                     .ok_or_else(|| error!(VsrError::VoterWeightOverflow))?;
                 sum = sum
                     .checked_add(voting_mint_config.max_extra_lockup_vote_weight(mint.supply)?)

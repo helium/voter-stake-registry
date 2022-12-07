@@ -17,14 +17,9 @@ pub struct VotingMintConfig {
 
     /// The authority that is allowed to push grants into voters
     pub grant_authority: Pubkey,
-
-    /// Vote weight factor for all funds in the account when unlocked
-    ///
-    /// In 1/SCALED_FACTOR_BASE units.
-    pub unlocked_vote_weight_scaled_factor: u64,
     
     /// Vote weight factor for all funds in the account when locked up
-    /// for minimum_required_lockup_secs
+    /// for minimum_required_lockup_secs must be >= baselien_vote_weight_scaled_factor
     ///
     /// In 1/SCALED_FACTOR_BASE units.    
     pub minimum_lockup_vote_weight_scaled_factor: u64,
@@ -49,7 +44,7 @@ pub struct VotingMintConfig {
 
     // Empty bytes for future upgrades.
     pub reserved1: [u8; 7],
-    pub reserved2: [u64; 5], // split because `Default` does not support [u8; 47]
+    pub reserved2: [u64; 6], // split because `Default` does not support [u8; 47]
 }
 const_assert!(std::mem::size_of::<VotingMintConfig>() == 2 * 32 + 5 * 8 + 1 + 47);
 const_assert!(std::mem::size_of::<VotingMintConfig>() % 8 == 0);
@@ -81,14 +76,6 @@ impl VotingMintConfig {
             .ok()
         };
         compute().ok_or_else(|| error!(VsrError::VoterWeightOverflow))
-    }
-
-    /// The vote weight a deposit of a number of unlocked native tokens should have.
-    pub fn unlocked_vote_weight(&self, amount_native: u64) -> Result<u64> {
-        Self::apply_factor(
-            self.digit_shift_native(amount_native)?,
-            self.unlocked_vote_weight_scaled_factor,
-        )
     }
 
     /// The vote weight a deposit of a number of locked native tokens should have
