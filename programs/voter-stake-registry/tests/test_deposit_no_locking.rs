@@ -84,6 +84,8 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             1.0,
             0,
             10.0, // no locking, so has no effect
+            0.0,
+            0,
             5 * 365 * 24 * 60 * 60,
             None,
             None,

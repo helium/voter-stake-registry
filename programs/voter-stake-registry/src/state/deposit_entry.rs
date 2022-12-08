@@ -364,11 +364,13 @@ mod tests {
             grant_authority: Pubkey::default(),
             locked_vote_weight_scaled_factor: 1_000_000_000, // 1x
             max_extra_lockup_vote_weight_scaled_factor: 99_000_000_000, // 99x
+            genesis_extra_lockup_vote_weight_scaled_factor: 0,
+            genesis_extra_lockup_expiration_secs: 0,
             lockup_saturation_secs: saturation as u64,
             minimum_required_lockup_secs: minimum_required_lockup_secs as u64,
             digit_shift: 0,
             reserved1: [0; 7],
-            reserved2: [0; 6],
+            reserved2: [0; 4],
         };
 
         let locked_vote_weight = voting_mint_config.locked_vote_weight(deposit.amount_deposited_native)?;
@@ -444,11 +446,13 @@ mod tests {
             grant_authority: Pubkey::default(),
             locked_vote_weight_scaled_factor: 1_000_000_000, // 1x
             max_extra_lockup_vote_weight_scaled_factor: 99_000_000_000, // 99x
+            genesis_extra_lockup_vote_weight_scaled_factor: 0,
+            genesis_extra_lockup_expiration_secs: 0,
             lockup_saturation_secs: saturation as u64,
             minimum_required_lockup_secs: minimum_required_lockup_secs as u64,
             digit_shift: 0,
             reserved1: [0; 7],
-            reserved2: [0; 6],
+            reserved2: [0; 4],
         };
 
         let locked_vote_weight = voting_mint_config.locked_vote_weight(deposit.amount_deposited_native)?;

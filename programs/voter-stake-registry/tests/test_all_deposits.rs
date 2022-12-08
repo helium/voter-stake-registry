@@ -47,6 +47,8 @@ async fn test_all_deposits() -> Result<(), TransportError> {
             1.0,
             0,
             0.0,
+            0.0,
+            0,
             5 * year,
             None,
             None,

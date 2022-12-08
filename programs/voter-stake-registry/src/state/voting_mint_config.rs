@@ -36,6 +36,17 @@ pub struct VotingMintConfig {
     /// In 1/SCALED_FACTOR_BASE units.    
     pub max_extra_lockup_vote_weight_scaled_factor: u64,
 
+    /// Genesis extra vote weight factor for lockups.
+    /// 
+    /// This is the extra vote weight gained for lockups created before
+    /// genesis_extra_lockup_expiration
+    /// 
+    /// In 1/SCALED_FACTOR_BASE units.
+    pub genesis_extra_lockup_vote_weight_scaled_factor: u64,
+
+    /// Unix time of when to stop applying the genesis_extra_lockup_vote_weight_scaled_factor
+    pub genesis_extra_lockup_expiration_secs: u64,
+
     /// Number of seconds of lockup needed to reach the maximum lockup bonus.
     pub lockup_saturation_secs: u64,
     
@@ -44,9 +55,9 @@ pub struct VotingMintConfig {
 
     // Empty bytes for future upgrades.
     pub reserved1: [u8; 7],
-    pub reserved2: [u64; 6], // split because `Default` does not support [u8; 47]
+    pub reserved2: [u64; 4], // split because `Default` does not support [u8; 55]
 }
-const_assert!(std::mem::size_of::<VotingMintConfig>() == 2 * 32 + 5 * 8 + 1 + 47);
+const_assert!(std::mem::size_of::<VotingMintConfig>() == 2 * 32 + 6 * 8 + 1 + 7 + 32);
 const_assert!(std::mem::size_of::<VotingMintConfig>() % 8 == 0);
 
 impl VotingMintConfig {

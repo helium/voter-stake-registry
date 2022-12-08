@@ -73,6 +73,8 @@ pub mod voter_stake_registry {
         locked_vote_weight_scaled_factor: u64,        
         minimum_required_lockup_secs: u64,                
         max_extra_lockup_vote_weight_scaled_factor: u64,
+        genesis_extra_lockup_vote_weight_scaled_factor: u64,
+        genesis_extra_lockup_expiration_secs: u64,
         lockup_saturation_secs: u64,
         grant_authority: Option<Pubkey>,
     ) -> Result<()> {
@@ -83,6 +85,8 @@ pub mod voter_stake_registry {
             locked_vote_weight_scaled_factor,
             minimum_required_lockup_secs,
             max_extra_lockup_vote_weight_scaled_factor,
+            genesis_extra_lockup_vote_weight_scaled_factor,
+            genesis_extra_lockup_expiration_secs,
             lockup_saturation_secs,
             grant_authority,
         )

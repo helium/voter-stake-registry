@@ -69,6 +69,8 @@ async fn test_reset_lockup() -> Result<(), TransportError> {
             1.0,
             0,            
             0.0,
+            0.0,
+            0,
             5 * 365 * 24 * 60 * 60,
             None,
             None,

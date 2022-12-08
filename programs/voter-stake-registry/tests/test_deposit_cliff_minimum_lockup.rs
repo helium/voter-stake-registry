@@ -78,6 +78,8 @@ async fn test_deposit_cliff_minimum_lockup() -> Result<(), TransportError> {
             1.0,
             2 * 24 * 60 * 60, // minimum 2 days            
             2.0, // max of 2.0
+            0.0,
+            0,
             4 * 24 * 60 * 60, // 4 days for max
             None,
             None,
