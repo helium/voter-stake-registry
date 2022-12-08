@@ -79,6 +79,9 @@ async fn test_voting() -> Result<(), TransportError> {
         .create_voter(&registrar, &token_owner_record2, &voter2_authority, &payer)
         .await;
 
+    let reset_lockup = |index: u8, periods: u32, kind: LockupKind| {
+        addin.reset_lockup(&registrar, &voter, &voter_authority, index, kind, periods)
+    };
     let mint_governance = realm
         .create_mint_governance(
             context.mints[0].pubkey.unwrap(),
@@ -115,8 +118,8 @@ async fn test_voting() -> Result<(), TransportError> {
         )
         .await
         .unwrap();
-
-    // need vote weight of 1000, but only have 499 * 2
+    
+    // need vote weight of 1000, but only have 0 since nothing locked up
     realm
         .create_proposal(
             mint_governance.address,
@@ -128,6 +131,8 @@ async fn test_voting() -> Result<(), TransportError> {
         .await
         .expect_err("not enough tokens to create proposal");
 
+    // reset lockup to cliff to gain power
+    reset_lockup(0, 2, LockupKind::Cliff).await.unwrap();
     addin
         .deposit(
             &registrar,
@@ -175,9 +180,9 @@ async fn test_voting() -> Result<(), TransportError> {
             voter2_authority,
             &mngo_voting_mint,
             0,
-            LockupKind::None,
+            LockupKind::Cliff,
             None,
-            0,
+            2,
         )
         .await
         .unwrap();
@@ -278,6 +283,26 @@ async fn test_voting() -> Result<(), TransportError> {
         )
         .await
         .unwrap();
+    
+    // cant withdraw becuase cliff is still active    
+    addin
+        .withdraw(
+            &registrar,
+            &voter2,
+            &mngo_voting_mint,
+            &voter2_authority,
+            voter_mngo,
+            0,
+            750,
+        )
+        .await
+        .expect_err("could not withdraw");        
+
+    // advance to end of cliff
+    addin
+        .set_time_offset(&registrar, &realm_authority, 6 * 24 * 60 * 60)
+        .await;
+    context.solana.advance_clock_by_slots(2).await; // avoid cache when sending same transaction again        
 
     // can withdraw again
     addin

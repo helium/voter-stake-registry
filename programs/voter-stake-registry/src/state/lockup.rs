@@ -182,12 +182,6 @@ pub enum LockupKind {
     /// No lockup, tokens can be withdrawn as long as not engaged in a proposal.
     None,
 
-    /// Lock up for a number of days, where a linear fraction vests each day.
-    Daily,
-
-    /// Lock up for a number of months, where a linear fraction vests each month.
-    Monthly,
-
     /// Lock up for a number of days, no vesting.
     Cliff,
 
@@ -204,8 +198,6 @@ impl LockupKind {
     pub fn period_secs(&self) -> u64 {
         match self {
             LockupKind::None => 0,
-            LockupKind::Daily => SECS_PER_DAY,
-            LockupKind::Monthly => SECS_PER_MONTH,
             LockupKind::Cliff => SECS_PER_DAY, // arbitrary choice
             LockupKind::Constant => SECS_PER_DAY, // arbitrary choice
         }
@@ -215,28 +207,14 @@ impl LockupKind {
     pub fn strictness(&self) -> u8 {
         match self {
             LockupKind::None => 0,
-            LockupKind::Daily => 1,
-            LockupKind::Monthly => 2,
-            LockupKind::Cliff => 3, // can freely move between Cliff and Constant
-            LockupKind::Constant => 3,
+            LockupKind::Cliff => 1, // can freely move between Cliff and Constant
+            LockupKind::Constant => 1,
         }
     }
 
     pub fn is_none(&self) -> bool {
         match self {
             LockupKind::None => true,
-            LockupKind::Daily => false,
-            LockupKind::Monthly => false,
-            LockupKind::Cliff => false,
-            LockupKind::Constant => false,
-        }
-    }
-
-    pub fn is_vesting(&self) -> bool {
-        match self {
-            LockupKind::None => false,
-            LockupKind::Daily => true,
-            LockupKind::Monthly => true,
             LockupKind::Cliff => false,
             LockupKind::Constant => false,
         }
@@ -254,7 +232,7 @@ mod tests {
 
     #[test]
     pub fn period_computations() -> Result<()> {
-        let lockup = Lockup::new_from_periods(LockupKind::Daily, 1000, 1000, 3)?;
+        let lockup = Lockup::new_from_periods(LockupKind::Cliff, 1000, 1000, 3)?;
         let day = SECS_PER_DAY as i64;
         assert_eq!(lockup.periods_total()?, 3);
         assert_eq!(lockup.period_current(0)?, 0);
@@ -358,56 +336,12 @@ mod tests {
     }
 
     #[test]
-    pub fn months_left_start() -> Result<()> {
-        run_test_months_left(TestMonthsLeft {
-            expected_months_left: 10,
-            months_total: 10.0,
-            curr_month: 0.,
-        })
-    }
-
-    #[test]
-    pub fn months_left_one_half() -> Result<()> {
-        run_test_months_left(TestMonthsLeft {
-            expected_months_left: 10,
-            months_total: 10.0,
-            curr_month: 0.5,
-        })
-    }
-
-    #[test]
-    pub fn months_left_one_and_a_half() -> Result<()> {
-        run_test_months_left(TestMonthsLeft {
-            expected_months_left: 9,
-            months_total: 10.0,
-            curr_month: 1.5,
-        })
-    }
-
-    #[test]
-    pub fn months_left_ten() -> Result<()> {
-        run_test_months_left(TestMonthsLeft {
-            expected_months_left: 9,
-            months_total: 10.0,
-            curr_month: 1.5,
-        })
-    }
-
-    #[test]
-    pub fn months_left_eleven() -> Result<()> {
-        run_test_months_left(TestMonthsLeft {
-            expected_months_left: 0,
-            months_total: 10.0,
-            curr_month: 11.,
-        })
-    }
-
-    #[test]
     pub fn voting_power_cliff_warmup() -> Result<()> {
         // 10 tokens with 6 decimals.
         let amount_deposited = 10 * 1_000_000;
+        let expected_voting_power = locked_cliff_power(amount_deposited, 10.5);
         run_test_voting_power(TestVotingPower {
-            expected_voting_power: locked_cliff_power(amount_deposited, 10.5),
+            expected_voting_power,
             amount_deposited,
             days_total: 10.0,
             curr_day: -0.5,
@@ -561,210 +495,10 @@ mod tests {
         })
     }
 
-    #[test]
-    pub fn voting_power_daily_warmup() -> Result<()> {
-        let amount_deposited = 10 * 1_000_000;
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power: locked_daily_power(amount_deposited, -1.5, 10),
-            amount_deposited: 10 * 1_000_000, // 10 tokens with 6 decimals.
-            days_total: 10.0,
-            curr_day: -1.5,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_start() -> Result<()> {
-        // 10 tokens with 6 decimals.
-        let amount_deposited = 10 * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 0.0, 10);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: 10.0,
-            curr_day: 0.0,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_one_half() -> Result<()> {
-        // 10 tokens with 6 decimals.
-        let amount_deposited = 10 * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 0.5, 10);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: 10.0,
-            curr_day: 0.5,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_one() -> Result<()> {
-        // 10 tokens with 6 decimals.
-        let amount_deposited = 10 * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 1.0, 10);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: 10.0,
-            curr_day: 1.0,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_one_and_one_third() -> Result<()> {
-        // 10 tokens with 6 decimals.
-        let amount_deposited = 10 * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 1.3, 10);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: 10.0,
-            curr_day: 1.3,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_two() -> Result<()> {
-        // 10 tokens with 6 decimals.
-        let amount_deposited = 10 * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 2.0, 10);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: 10.0,
-            curr_day: 2.0,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_nine() -> Result<()> {
-        // 10 tokens with 6 decimals.
-        let amount_deposited = 10 * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 9.0, 10);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: 10.0,
-            curr_day: 9.0,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_nine_dot_nine() -> Result<()> {
-        // 10 tokens with 6 decimals.
-        let amount_deposited = 10 * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 9.9, 10);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: 10.0,
-            curr_day: 9.9,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_ten() -> Result<()> {
-        // 10 tokens with 6 decimals.
-        let amount_deposited = 10 * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 10.0, 10);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: 10.0,
-            curr_day: 10.0,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_ten_dot_one() -> Result<()> {
-        // 10 tokens with 6 decimals.
-        let amount_deposited = 10 * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 10.1, 10);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: 10.0,
-            curr_day: 10.1,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_eleven() -> Result<()> {
-        // 10 tokens with 6 decimals.
-        let amount_deposited = 10 * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 11.0, 10);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: 10.0,
-            curr_day: 11.0,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_saturation() -> Result<()> {
-        let days = MAX_DAYS_LOCKED.floor() as u64;
-        let amount_deposited = days * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 0.0, days);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: MAX_DAYS_LOCKED.floor(),
-            curr_day: 0.0,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_above_saturation1() -> Result<()> {
-        let days = (MAX_DAYS_LOCKED + 10.0).floor() as u64;
-        let amount_deposited = days * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 0.0, days);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: (MAX_DAYS_LOCKED + 10.0).floor(),
-            curr_day: 0.0,
-            kind: LockupKind::Daily,
-        })
-    }
-
-    #[test]
-    pub fn voting_power_daily_above_saturation2() -> Result<()> {
-        let days = (MAX_DAYS_LOCKED + 10.0).floor() as u64;
-        let amount_deposited = days * 1_000_000;
-        let expected_voting_power = locked_daily_power(amount_deposited, 0.5, days);
-        run_test_voting_power(TestVotingPower {
-            expected_voting_power,
-            amount_deposited,
-            days_total: (MAX_DAYS_LOCKED + 10.0).floor(),
-            curr_day: 0.5,
-            kind: LockupKind::Daily,
-        })
-    }
-
     struct TestDaysLeft {
         expected_days_left: u64,
         days_total: f64,
         curr_day: f64,
-    }
-
-    struct TestMonthsLeft {
-        expected_months_left: u64,
-        months_total: f64,
-        curr_month: f64,
     }
 
     struct TestVotingPower {
@@ -790,21 +524,6 @@ mod tests {
         Ok(())
     }
 
-    fn run_test_months_left(t: TestMonthsLeft) -> Result<()> {
-        let start_ts = 1634929833;
-        let end_ts = start_ts + months_to_secs(t.months_total);
-        let curr_ts = start_ts + months_to_secs(t.curr_month);
-        let l = Lockup {
-            kind: LockupKind::Monthly,
-            start_ts,
-            end_ts,
-            reserved: [0u8; 15],
-        };
-        let months_left = l.periods_left(curr_ts)?;
-        assert_eq!(months_left, t.expected_months_left);
-        Ok(())
-    }
-
     fn run_test_voting_power(t: TestVotingPower) -> Result<()> {
         let start_ts = 1634929833;
         let end_ts = start_ts + days_to_secs(t.days_total);
@@ -824,10 +543,10 @@ mod tests {
         let curr_ts = start_ts + days_to_secs(t.curr_day);
         let power = d.voting_power_locked(
           curr_ts, 
-          t.amount_deposited,
+          0,
+          0,
           t.amount_deposited,
           MAX_SECS_LOCKED,
-          0
         )?;
         assert_eq!(power, t.expected_voting_power);
         Ok(())
@@ -838,35 +557,10 @@ mod tests {
         d.round() as i64
     }
 
-    fn months_to_secs(months: f64) -> i64 {
-        let d = (SECS_PER_MONTH as f64) * months;
-        d.round() as i64
-    }
-
-    // Calculates locked voting power. Done iteratively as a sanity check on
-    // the closed form calcuation.
-    //
-    // deposit - the amount locked up
-    // day - the current day in the lockup period
-    // total_days - the number of days locked up
-    fn locked_daily_power(amount: u64, day: f64, total_days: u64) -> u64 {
-        if day >= total_days as f64 {
-            return 0;
-        }
-        let days_remaining = total_days - day.floor() as u64;
-        let mut total = 0f64;
-        for k in 0..days_remaining {
-            // We have 'days_remaining' remaining cliff-locked deposits of
-            // amount / total_days each.
-            let remaining_days = total_days as f64 - day - k as f64;
-            total += locked_cliff_power_float(amount / total_days, remaining_days);
-        }
-        // the test code uses floats to compute the voting power; avoid
-        // getting incurrect expected results due to floating point rounding
-        (total + 0.0001).floor() as u64
-    }
-
-    fn locked_cliff_power_float(amount: u64, remaining_days: f64) -> f64 {
+    fn locked_cliff_power_float(
+      amount: u64,
+      remaining_days: f64,
+    ) -> f64 {
         let relevant_days = if remaining_days < MAX_DAYS_LOCKED as f64 {
             remaining_days
         } else {

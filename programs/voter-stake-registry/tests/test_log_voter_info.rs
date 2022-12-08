@@ -55,6 +55,11 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
     let registrar = addin
         .create_registrar(&realm, &realm_authority, payer)
         .await;
+
+    let day = 24 * 60 * 60;
+    let year = 365 * day;
+    let month = year / 12;
+
     let mngo_voting_mint = addin
         .configure_voting_mint(
             &registrar,
@@ -64,9 +69,9 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
             &context.mints[0],
             0,
             1.0,
-            0,            
+            0,
             1.0,
-            365 * 24 * 60 * 60,
+            year,
             None,
             None,
         )
@@ -83,12 +88,13 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
             voter_authority,
             &mngo_voting_mint,
             0,
-            LockupKind::Monthly,
+            LockupKind::Cliff,
             None,
-            12,
+            365, // 1 year in days
         )
         .await
         .unwrap();
+
     addin
         .deposit(
             &registrar,
@@ -102,9 +108,9 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
         .await
         .unwrap();
 
-    // advance time, to have some vested funds
+    // advance time, to have some decay
     addin
-        .set_time_offset(&registrar, &realm_authority, 365 * 24 * 60 * 60 / 12)
+        .set_time_offset(&registrar, &realm_authority, month as i64)
         .await;
     context.solana.advance_clock_by_slots(2).await;
 
@@ -117,14 +123,32 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
     assert_eq!(voter_event.voting_power_locked, 12000);
     assert_eq!(
         voter_event.voting_power,
-        12000 + (1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11) * 1000 / 12
+        23000, // decayed 1 month from max saturation
+    );
+
+    // advance time, to have some decay
+    addin
+        .set_time_offset(&registrar, &realm_authority, 2 * month as i64)
+        .await;
+    context.solana.advance_clock_by_slots(2).await;
+
+    addin.log_voter_info(&registrar, &voter, 0).await;
+    let data_log = context.solana.program_output().data;
+    assert_eq!(data_log.len(), 2);
+
+    let voter_event =
+        deserialize_event::<voter_stake_registry::events::VoterInfo>(&data_log[0]).unwrap();
+    assert_eq!(voter_event.voting_power_locked, 12000);
+    assert_eq!(
+        voter_event.voting_power,
+        22000, // decayed 2 months from max saturation
     );
 
     let deposit_event =
         deserialize_event::<voter_stake_registry::events::DepositEntryInfo>(&data_log[1]).unwrap();
     assert_eq!(deposit_event.deposit_entry_index, 0);
     assert_eq!(deposit_event.voting_mint_config_index, 0);
-    assert_eq!(deposit_event.unlocked, 1000);
+    assert_eq!(deposit_event.unlocked, 0);
     assert_eq!(deposit_event.voting_power, voter_event.voting_power);
     assert_eq!(
         deposit_event.voting_power_locked,
@@ -132,7 +156,7 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
     );
     assert!(deposit_event.locking.is_some());
     let locking = deposit_event.locking.unwrap();
-    assert_eq!(locking.amount, 11000);
-
+    assert_eq!(locking.amount, 12000);
+    
     Ok(())
 }

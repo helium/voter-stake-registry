@@ -3,6 +3,8 @@ use solana_program::program_error::ProgramError;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 
+use crate::*;
+
 #[allow(dead_code)]
 pub fn gen_signer_seeds<'a>(nonce: &'a u64, acc_pk: &'a Pubkey) -> [&'a [u8]; 2] {
     [acc_pk.as_ref(), bytes_of(nonce)]
@@ -32,3 +34,4 @@ pub fn create_signer_key_and_nonce(program_id: &Pubkey, acc_pk: &Pubkey) -> (Pub
 pub fn clone_keypair(keypair: &Keypair) -> Keypair {
     Keypair::from_base58_string(&keypair.to_base58_string())
 }
+

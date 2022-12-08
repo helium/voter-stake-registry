@@ -99,7 +99,6 @@ impl DepositEntry {
           voting_mint_config.lockup_saturation_secs
         )?;
 
-
         require_gte!(
             max_locked_vote_weight.checked_add(locked_vote_weight).unwrap(),
             locked_vote_weight,
@@ -118,14 +117,12 @@ impl DepositEntry {
         max_locked_vote_weight: u64,
         lockup_saturation_secs: u64,
     ) -> Result<u64> {
-        if self.lockup.expired(curr_ts) || max_locked_vote_weight == 0 {
+        if self.lockup.expired(curr_ts) || (locked_vote_weight == 0 && max_locked_vote_weight == 0) {
             return Ok(0);
         }
 
         match self.lockup.kind {
             LockupKind::None => Ok(0),
-            LockupKind::Daily => Ok(0),
-            LockupKind::Monthly => Ok(0),
             LockupKind::Cliff => {
                 self.voting_power_cliff(
                   curr_ts,
@@ -225,8 +222,6 @@ impl DepositEntry {
         }
         match self.lockup.kind {
             LockupKind::None => Ok(self.amount_initially_locked_native),
-            LockupKind::Daily => Ok(0),
-            LockupKind::Monthly => Ok(0),
             LockupKind::Cliff => Ok(0),
             LockupKind::Constant => Ok(0),
         }

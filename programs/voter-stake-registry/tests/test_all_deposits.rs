@@ -26,7 +26,7 @@ async fn test_all_deposits() -> Result<(), TransportError> {
         .await;
 
     let voter_authority = &context.users[1].key;
-    let voter_mngo = context.users[1].token_accounts[0];
+    let voter_mngo = context.users[1].token_accounts[0];    
     let token_owner_record = realm
         .create_token_owner_record(voter_authority.pubkey(), &payer)
         .await;
@@ -34,6 +34,8 @@ async fn test_all_deposits() -> Result<(), TransportError> {
     let registrar = addin
         .create_registrar(&realm, &realm_authority, payer)
         .await;
+    let day = 24 * 60 * 60;
+    let year = 365 * day;
     let mngo_voting_mint = addin
         .configure_voting_mint(
             &registrar,
@@ -45,7 +47,7 @@ async fn test_all_deposits() -> Result<(), TransportError> {
             1.0,
             0,
             0.0,
-            5 * 365 * 24 * 60 * 60, // 5 years
+            5 * year,
             None,
             None,
         )
@@ -54,6 +56,20 @@ async fn test_all_deposits() -> Result<(), TransportError> {
     let voter = addin
         .create_voter(&registrar, &token_owner_record, &voter_authority, &payer)
         .await;
+
+    let reference_account = context.users[1].token_accounts[0];        
+    
+    let withdraw = |amount: u64| {
+        addin.withdraw(
+            &registrar,
+            &voter,
+            &mngo_voting_mint,
+            &voter_authority,
+            reference_account,
+            0,
+            amount,
+        )
+    };        
 
     for i in 0..32 {
         addin
@@ -65,7 +81,7 @@ async fn test_all_deposits() -> Result<(), TransportError> {
                 i,
                 LockupKind::Cliff,
                 None,
-                12,
+                365, // 1 year lockup
             )
             .await
             .unwrap();
@@ -85,32 +101,29 @@ async fn test_all_deposits() -> Result<(), TransportError> {
 
     // advance time, to be in the middle of all deposit lockups
     addin
-        .set_time_offset(&registrar, &realm_authority, 32 * 24 * 60 * 60)
+        .set_time_offset(&registrar, &realm_authority,  32 * 24 * 60 * 60 as i64)
         .await;
     context.solana.advance_clock_by_slots(2).await;
 
     // the two most expensive calls which scale with number of deposts
     // are update_voter_weight_record and withdraw - both compute the vote weight
-
     let vwr = addin
         .update_voter_weight_record(&registrar, &voter)
         .await
         .unwrap();
     assert_eq!(vwr.voter_weight, 12000 * 32);
 
-    // make sure withdrawing works with all deposits filled
+    withdraw(1).await.expect_err("nothing vested yet");
+
+    // advance more than cliff
     addin
-        .withdraw(
-            &registrar,
-            &voter,
-            &mngo_voting_mint,
-            voter_authority,
-            voter_mngo,
-            0,
-            1000,
-        )
-        .await
-        .unwrap();
+    .set_time_offset(&registrar, &realm_authority, 6 * year as i64)
+    .await;
+    context.solana.advance_clock_by_slots(2).await;
+
+    // can withdraw everything now
+    withdraw(12001).await.expect_err("withdrew too much");
+    withdraw(12000).await.unwrap();
 
     // logging can take a lot of cu/mem
     addin.log_voter_info(&registrar, &voter, 0).await;

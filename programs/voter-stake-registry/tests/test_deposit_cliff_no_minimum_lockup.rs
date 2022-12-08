@@ -9,7 +9,8 @@ struct Balances {
     token: u64,
     vault: u64,
     deposit: u64,
-    voter_weight: u64,}
+    voter_weight: u64
+}
 
 
 async fn balances(
