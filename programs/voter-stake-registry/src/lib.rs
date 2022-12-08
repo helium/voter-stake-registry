@@ -24,7 +24,7 @@ declare_id!("vsrZ1Nfkxmt1hVaB7ftvcj7XpRoQ1YtCgPLajeaV6Uj");
 /// The flow for voting with this program is as follows:
 ///
 /// - Create a SPL governance realm.
-/// - Create a governan2ce registry account.
+/// - Create a governance registry account.
 /// - Add exchange rates for any tokens one wants to deposit. For example,
 ///   if one wants to vote with tokens A and B, where token B has twice the
 ///   voting power of token A, then the exchange rate of B would be 2 and the
