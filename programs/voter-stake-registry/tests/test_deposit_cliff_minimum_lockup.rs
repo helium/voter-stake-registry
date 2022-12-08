@@ -138,7 +138,6 @@ async fn test_deposit_cliff_minimum_lockup() -> Result<(), TransportError> {
             voter_stake_registry::state::LockupKind::Cliff,
             None,
             1, // 1 days
-            false,
         )
         .await
         .expect_err("not at least minimum");
@@ -154,7 +153,6 @@ async fn test_deposit_cliff_minimum_lockup() -> Result<(), TransportError> {
             voter_stake_registry::state::LockupKind::None,
             None,
             0,
-            false,
         )
         .await
         .unwrap();

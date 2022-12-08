@@ -24,7 +24,7 @@ declare_id!("vsrZ1Nfkxmt1hVaB7ftvcj7XpRoQ1YtCgPLajeaV6Uj");
 /// The flow for voting with this program is as follows:
 ///
 /// - Create a SPL governance realm.
-/// - Create a governance registry account.
+/// - Create a governan2ce registry account.
 /// - Add exchange rates for any tokens one wants to deposit. For example,
 ///   if one wants to vote with tokens A and B, where token B has twice the
 ///   voting power of token A, then the exchange rate of B would be 2 and the
@@ -70,7 +70,7 @@ pub mod voter_stake_registry {
         ctx: Context<ConfigureVotingMint>,
         idx: u16,
         digit_shift: i8,
-        minimum_lockup_vote_weight_scaled_factor: u64,        
+        locked_vote_weight_scaled_factor: u64,        
         minimum_required_lockup_secs: u64,                
         max_extra_lockup_vote_weight_scaled_factor: u64,
         lockup_saturation_secs: u64,
@@ -80,7 +80,7 @@ pub mod voter_stake_registry {
             ctx,
             idx,
             digit_shift,
-            minimum_lockup_vote_weight_scaled_factor,
+            locked_vote_weight_scaled_factor,
             minimum_required_lockup_secs,
             max_extra_lockup_vote_weight_scaled_factor,
             lockup_saturation_secs,
@@ -102,7 +102,6 @@ pub mod voter_stake_registry {
         kind: LockupKind,
         start_ts: Option<u64>,
         periods: u32,
-        allow_clawback: bool,
     ) -> Result<()> {
         instructions::create_deposit_entry(
             ctx,
@@ -110,7 +109,6 @@ pub mod voter_stake_registry {
             kind,
             start_ts,
             periods,
-            allow_clawback,
         )
     }
 

@@ -83,7 +83,7 @@ pub fn configure_voting_mint(
     ctx: Context<ConfigureVotingMint>,
     idx: u16,
     digit_shift: i8,
-    minimum_lockup_vote_weight_scaled_factor: u64,
+    locked_vote_weight_scaled_factor: u64,
     minimum_required_lockup_secs: u64,
     max_extra_lockup_vote_weight_scaled_factor: u64,
     lockup_saturation_secs: u64,
@@ -93,12 +93,6 @@ pub fn configure_voting_mint(
         lockup_saturation_secs,
         0,
         VsrError::LockupSaturationMustBePositive
-    );
-
-    require_gt!(
-      minimum_lockup_vote_weight_scaled_factor,
-      0,
-      VsrError::LockupMinimumVoteWeightMustBePositive
     );
 
     let registrar = &mut ctx.accounts.registrar.load_mut()?;
@@ -128,7 +122,7 @@ pub fn configure_voting_mint(
     registrar.voting_mints[idx] = VotingMintConfig {
         mint,
         digit_shift,
-        minimum_lockup_vote_weight_scaled_factor,
+        locked_vote_weight_scaled_factor,
         minimum_required_lockup_secs,
         max_extra_lockup_vote_weight_scaled_factor,
         lockup_saturation_secs,

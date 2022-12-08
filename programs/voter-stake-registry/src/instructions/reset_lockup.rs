@@ -45,12 +45,6 @@ pub fn reset_lockup(
         VsrError::InvalidLockupKind
     );
 
-    // Don't re-lock clawback deposits. Users must withdraw and create a new one.
-    require!(
-        !source.allow_clawback,
-        VsrError::InvalidChangeToClawbackDepositEntry
-    );
-
     // Change the deposit entry.
     let d_entry = voter.active_deposit_mut(deposit_entry_index)?;
     d_entry.amount_initially_locked_native = d_entry.amount_deposited_native;

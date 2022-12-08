@@ -54,15 +54,12 @@ pub struct CreateDepositEntry<'info> {
 ///    the vesting start time and the anchor for the periods computation.
 ///
 /// - `periods`: How long to lock up, depending on `kind`. See LockupKind::period_secs()
-/// - `allow_clawback`: When enabled, the the realm_authority is allowed to
-///    unilaterally claim locked tokens.
 pub fn create_deposit_entry(
     ctx: Context<CreateDepositEntry>,
     deposit_entry_index: u8,
     kind: LockupKind,
     start_ts: Option<u64>,
     periods: u32,
-    allow_clawback: bool,
 ) -> Result<()> {
     // Load accounts.
     let registrar = &ctx.accounts.registrar.load()?;
@@ -105,7 +102,6 @@ pub fn create_deposit_entry(
     d_entry.voting_mint_config_idx = mint_idx as u8;
     d_entry.amount_deposited_native = 0;
     d_entry.amount_initially_locked_native = 0;
-    d_entry.allow_clawback = allow_clawback;
     d_entry.lockup = lockup;
 
     Ok(())

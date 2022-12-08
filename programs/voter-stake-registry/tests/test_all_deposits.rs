@@ -45,7 +45,7 @@ async fn test_all_deposits() -> Result<(), TransportError> {
             1.0,
             0,
             0.0,
-            5 * 365 * 24 * 60 * 60,
+            5 * 365 * 24 * 60 * 60, // 5 years
             None,
             None,
         )
@@ -63,10 +63,9 @@ async fn test_all_deposits() -> Result<(), TransportError> {
                 voter_authority,
                 &mngo_voting_mint,
                 i,
-                LockupKind::Monthly,
+                LockupKind::Cliff,
                 None,
                 12,
-                false,
             )
             .await
             .unwrap();

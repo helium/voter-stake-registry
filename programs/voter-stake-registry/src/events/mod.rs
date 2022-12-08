@@ -5,8 +5,8 @@ use anchor_lang::prelude::*;
 pub struct VoterInfo {
     /// Voter's total voting power
     pub voting_power: u64,
-    /// Voter's total voting power, when locked up for minimum
-    pub voting_power_minimum_lockup: u64
+    /// Voter's total voting power, when locked up
+    pub voting_power_locked: u64
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Debug)]
@@ -27,7 +27,7 @@ pub struct DepositEntryInfo {
     /// Voting power implied by this deposit entry
     pub voting_power: u64,
     /// Voting power when locked up for minimum
-    pub voting_power_minimum_lockup: u64,
+    pub voting_power_locked: u64,
     /// Information about locking, if any
     pub locking: Option<LockingInfo>,
 }

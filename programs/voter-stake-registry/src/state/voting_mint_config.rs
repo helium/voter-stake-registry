@@ -19,10 +19,10 @@ pub struct VotingMintConfig {
     pub grant_authority: Pubkey,
     
     /// Vote weight factor for all funds in the account when locked up
-    /// for minimum_required_lockup_secs must be >= baselien_vote_weight_scaled_factor
+    /// for minimum_required_lockup_secs, must be >= 0
     ///
     /// In 1/SCALED_FACTOR_BASE units.    
-    pub minimum_lockup_vote_weight_scaled_factor: u64,
+    pub locked_vote_weight_scaled_factor: u64,
     
     /// Number of seconds of lockup needed to reach the locked_baseline_vote_weight_scaled_factor.
     pub minimum_required_lockup_secs: u64,
@@ -80,10 +80,10 @@ impl VotingMintConfig {
 
     /// The vote weight a deposit of a number of locked native tokens should have
     /// when locked for minimum_required_lockup_secs
-    pub fn minimum_lockup_vote_weight(&self, amount_native: u64) -> Result<u64> {
+    pub fn locked_vote_weight(&self, amount_native: u64) -> Result<u64> {
         Self::apply_factor(
             self.digit_shift_native(amount_native)?,
-            self.minimum_lockup_vote_weight_scaled_factor,
+            self.locked_vote_weight_scaled_factor,
         )
     }    
 
@@ -107,7 +107,7 @@ impl VotingMintConfig {
     /// want to use the grant / vesting / clawback functionality for non-voting
     /// tokens like USDC.
     pub fn grants_vote_weight(&self) -> bool {
-        self.minimum_lockup_vote_weight_scaled_factor > 0
+        self.locked_vote_weight_scaled_factor > 0
             || self.max_extra_lockup_vote_weight_scaled_factor > 0
     }
 }

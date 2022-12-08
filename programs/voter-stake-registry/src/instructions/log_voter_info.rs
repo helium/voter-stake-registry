@@ -31,7 +31,7 @@ pub fn log_voter_info(
     msg!("voter");
     emit!(VoterInfo {
         voting_power: voter.weight(registrar)?,
-        voting_power_minimum_lockup: voter.weight_minimum_lockup(registrar)?,
+        voting_power_locked: voter.weight_locked(registrar)?,
     });
 
     msg!("deposit_entries");
@@ -58,7 +58,7 @@ pub fn log_voter_info(
             voting_mint_config_index: deposit.voting_mint_config_idx,
             unlocked: deposit.amount_unlocked(curr_ts),
             voting_power: deposit.voting_power(voting_mint_config, curr_ts)?,
-            voting_power_minimum_lockup: voting_mint_config.minimum_lockup_vote_weight(deposit.amount_deposited_native)?,
+            voting_power_locked: voting_mint_config.locked_vote_weight(deposit.amount_deposited_native)?,
             locking: locking_info,
         });
     }

@@ -99,7 +99,7 @@ impl AddinCookie {
         index: u16,
         mint: &MintCookie,
         digit_shift: i8,
-        minimum_lockup_vote_weight_scaled_factor: f64,
+        locked_vote_weight_scaled_factor: f64,
         minimum_required_lockup_secs: u64,        
         max_extra_lockup_vote_weight_scaled_factor: f64,
         lockup_saturation_secs: u64,
@@ -112,7 +112,7 @@ impl AddinCookie {
             &voter_stake_registry::instruction::ConfigureVotingMint {
                 idx: index,
                 digit_shift,
-                minimum_lockup_vote_weight_scaled_factor: (minimum_lockup_vote_weight_scaled_factor * 1e9)
+                locked_vote_weight_scaled_factor: (locked_vote_weight_scaled_factor * 1e9)
                     as u64,                
                 minimum_required_lockup_secs,
                 max_extra_lockup_vote_weight_scaled_factor:
@@ -235,7 +235,6 @@ impl AddinCookie {
         lockup_kind: voter_stake_registry::state::LockupKind,
         start_ts: Option<u64>,
         periods: u32,
-        allow_clawback: bool,
     ) -> std::result::Result<(), TransportError> {
         let vault = voter.vault_address(&voting_mint);
 
@@ -245,7 +244,6 @@ impl AddinCookie {
                 kind: lockup_kind,
                 start_ts,
                 periods,
-                allow_clawback,
             },
         );
 

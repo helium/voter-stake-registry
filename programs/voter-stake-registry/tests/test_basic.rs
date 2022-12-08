@@ -43,7 +43,7 @@ async fn test_basic() -> Result<(), TransportError> {
             0,
             &context.mints[0],
             10,
-            0.0,  
+            0.0,
             0,            
             0.0,
             1,
@@ -101,7 +101,6 @@ async fn test_basic() -> Result<(), TransportError> {
             voter_stake_registry::state::LockupKind::Cliff,
             None,
             0,
-            false,
         )
         .await?;
     context

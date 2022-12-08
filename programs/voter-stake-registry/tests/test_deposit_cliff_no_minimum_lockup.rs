@@ -9,8 +9,8 @@ struct Balances {
     token: u64,
     vault: u64,
     deposit: u64,
-    voter_weight: u64,
-}
+    voter_weight: u64,}
+
 
 async fn balances(
     context: &TestContext,
@@ -42,7 +42,7 @@ async fn balances(
 
 #[allow(unaligned_references)]
 #[tokio::test]
-async fn test_deposit_constant() -> Result<(), TransportError> {
+async fn test_deposit_cliff() -> Result<(), TransportError> {
     let context = TestContext::new().await;
     let addin = &context.addin;
 
@@ -76,7 +76,7 @@ async fn test_deposit_constant() -> Result<(), TransportError> {
             &context.mints[0],
             0,
             1.0,
-            0,            
+            0,
             1.0,
             2 * 24 * 60 * 60,
             None,
@@ -135,10 +135,9 @@ async fn test_deposit_constant() -> Result<(), TransportError> {
             &voter_authority,
             &mngo_voting_mint,
             0,
-            voter_stake_registry::state::LockupKind::Constant,
+            voter_stake_registry::state::LockupKind::Cliff,
             None,
-            2, // days
-            false,
+            3, // days
         )
         .await
         .unwrap();
@@ -150,64 +149,48 @@ async fn test_deposit_constant() -> Result<(), TransportError> {
     assert_eq!(after_deposit.vault, 9000);
     assert_eq!(after_deposit.deposit, 9000);
 
-    withdraw(1).await.expect_err("all locked up");
+    // cannot withdraw yet, nothing is vested
+    withdraw(1).await.expect_err("nothing vested yet");
 
-    // advance three days
+    // advance a day
     addin
-        .set_time_offset(&registrar, &realm_authority, 3 * 24 * 60 * 60)
+        .set_time_offset(&registrar, &realm_authority, 24 * 60 * 60)
         .await;
-    let after_day3 = get_balances(0).await;
-    assert_eq!(after_day3.voter_weight, after_deposit.voter_weight); // unchanged
+    let after_day1 = get_balances(0).await;
+    assert_eq!(after_day1.voter_weight, 2 * after_day1.vault); // still saturated
 
-    withdraw(1).await.expect_err("all locked up");
+    // advance a second day
+    addin
+        .set_time_offset(&registrar, &realm_authority, 48 * 60 * 60)
+        .await;
+    let after_day2 = get_balances(0).await;
+    assert_eq!(after_day2.voter_weight, 3 * after_day2.vault / 2); // locking half done
 
+    // advance to almost three days
+    addin
+        .set_time_offset(&registrar, &realm_authority, 71 * 60 * 60)
+        .await;
+    context.solana.advance_clock_by_slots(2).await;
+
+    withdraw(1).await.expect_err("nothing vested yet");
+
+    // deposit some more
     deposit(1000).await.unwrap();
 
-    let after_deposit = get_balances(0).await;
-    assert_eq!(token, after_deposit.token + after_deposit.vault);
-    assert_eq!(after_deposit.voter_weight, 2 * after_deposit.vault); // saturated locking bonus
-    assert_eq!(after_deposit.vault, 10000);
-    assert_eq!(after_deposit.deposit, 10000);
-
-    withdraw(1).await.expect_err("all locked up");
-
-    // Change the whole thing to cliff lockup
+    // advance more than three days
     addin
-        .reset_lockup(
-            &registrar,
-            &voter,
-            &voter_authority,
-            0,
-            voter_stake_registry::state::LockupKind::Cliff,
-            1,
-        )
-        .await
-        .expect_err("can't reduce period");
-    addin
-        .reset_lockup(
-            &registrar,
-            &voter,
-            &voter_authority,
-            0,
-            voter_stake_registry::state::LockupKind::Cliff,
-            2,
-        )
-        .await
-        .unwrap();
-
-    let after_reset = get_balances(0).await;
-    assert_eq!(token, after_reset.token + after_reset.vault);
-    assert_eq!(after_reset.voter_weight, 2 * after_reset.vault); // saturated locking bonus
-    assert_eq!(after_reset.vault, 10000);
-    assert_eq!(after_reset.deposit, 10000);
-
-    withdraw(1).await.expect_err("all locked up");
-
-    // advance to six days
-    addin
-        .set_time_offset(&registrar, &realm_authority, 6 * 24 * 60 * 60)
+        .set_time_offset(&registrar, &realm_authority, 73 * 60 * 60)
         .await;
+    context.solana.advance_clock_by_slots(2).await;
 
+    let after_cliff = get_balances(0).await;
+    assert_eq!(token, after_cliff.token + after_cliff.vault);
+    assert_eq!(after_cliff.voter_weight, 0);
+    assert_eq!(after_cliff.vault, 10000);
+    assert_eq!(after_cliff.deposit, 10000);
+
+    // can withdraw everything now
+    withdraw(10001).await.expect_err("withdrew too much");
     withdraw(10000).await.unwrap();
 
     let after_withdraw = get_balances(0).await;

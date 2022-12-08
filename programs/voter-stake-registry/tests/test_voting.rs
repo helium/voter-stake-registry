@@ -100,7 +100,6 @@ async fn test_voting() -> Result<(), TransportError> {
             LockupKind::None,
             None,
             0,
-            false,
         )
         .await
         .unwrap();
@@ -179,7 +178,6 @@ async fn test_voting() -> Result<(), TransportError> {
             LockupKind::None,
             None,
             0,
-            false,
         )
         .await
         .unwrap();
@@ -206,7 +204,6 @@ async fn test_voting() -> Result<(), TransportError> {
             LockupKind::None,
             None,
             0,
-            false,
         )
         .await
         .unwrap();

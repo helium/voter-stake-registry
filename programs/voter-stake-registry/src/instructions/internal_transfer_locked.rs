@@ -46,13 +46,6 @@ pub fn internal_transfer_locked(
     let source_strictness = source.lockup.kind.strictness();
     let source_mint_idx = source.voting_mint_config_idx;
 
-    // Allowing transfers from clawback-enabled deposits could be used to avoid
-    // clawback by making proposal instructions target the wrong entry index.
-    require!(
-        !source.allow_clawback,
-        VsrError::InvalidChangeToClawbackDepositEntry
-    );
-
     // Reduce source amounts
     require_gte!(
         source.amount_initially_locked_native,

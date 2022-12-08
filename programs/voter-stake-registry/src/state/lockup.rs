@@ -813,7 +813,6 @@ mod tests {
             voting_mint_config_idx: 0,
             amount_deposited_native: t.amount_deposited,
             amount_initially_locked_native: t.amount_deposited,
-            allow_clawback: false,
             lockup: Lockup {
                 start_ts,
                 end_ts,

@@ -33,9 +33,6 @@ pub struct DepositEntry {
     // True if the deposit entry is being used.
     pub is_used: bool,
 
-    /// If the clawback authority is allowed to extract locked tokens.
-    pub allow_clawback: bool,
-
     // Points to the VotingMintConfig this deposit uses.
     pub voting_mint_config_idx: u8,
 
@@ -54,25 +51,23 @@ impl DepositEntry {
     ///
     /// If remaining time is > minimum_required_lockup_secs
     /// ```
-    ///    voting_power = baseline_vote_weight
-    ///                   + (minimum_lockup_vote_weight + (lockup_duration_factor * max_extra_lockup_vote_weight))
+    ///    voting_power = locked_vote_weight + (lockup_duration_factor * max_extra_lockup_vote_weight))
     /// ```
     /// 
     /// with
     ///   - lockup_duration_factor = min((lockup_time_remaining - minimum_required_lockup_secs) / (lockup_saturation_secs - minimum_required_lockup_secs), 1)
     ///   - the VotingMintConfig providing the values for
-    ///     baseline_vote_weight, minimum_lockup_vote_weight, minimum_required_lockup_secs, max_extra_lockup_vote_weight, lockup_saturation_secs
+    ///     locked_vote_weight, minimum_required_lockup_secs, max_extra_lockup_vote_weight, lockup_saturation_secs
     /// 
     /// If remaining time is <= minimum_required_lockup_secs
     /// ```
-    ///    voting_power = baseline_vote_weight
-    ///                   + lockup_duration_factor * min_lockup_vote_weight
+    ///    voting_power = lockup_duration_factor * locked_vote_weight
     /// ```
     /// 
     /// with
-    ///   - lockup_duration_factor = min(lockup_time_remaining / min_lockup_saturation_secs, 1)
+    ///   - lockup_duration_factor = min(lockup_time_remaining / minimum_required_lockup_secs, 1)
     ///   - the VotingMintConfig providing the values for
-    ///     baseline_vote_weight, min_lockup_vote_weight, min_lockup_saturation_secs
+    ///     locked_vote_weight, minimum_required_lockup_secs
     ///
     /// Linear vesting schedules can be thought of as a sequence of cliff-
     /// locked tokens and have the matching voting weight.
@@ -92,26 +87,26 @@ impl DepositEntry {
     /// made for the remaining time period.
     ///
     pub fn voting_power(&self, voting_mint_config: &VotingMintConfig, curr_ts: i64) -> Result<u64> {
-        let minimum_lockup_vote_weight = voting_mint_config.minimum_lockup_vote_weight(self.amount_deposited_native)?;
+        let locked_vote_weight = voting_mint_config.locked_vote_weight(self.amount_deposited_native)?;
         let max_locked_vote_weight =
             voting_mint_config.max_extra_lockup_vote_weight(self.amount_initially_locked_native)?;
 
-        let locked_vote_weight = self.voting_power_locked(
+        let voting_power_locked = self.voting_power_locked(
           curr_ts,
           voting_mint_config.minimum_required_lockup_secs,
-          minimum_lockup_vote_weight,
+          locked_vote_weight,
           max_locked_vote_weight,
           voting_mint_config.lockup_saturation_secs
         )?;
 
 
         require_gte!(
-            max_locked_vote_weight.checked_add(minimum_lockup_vote_weight).unwrap(),
+            max_locked_vote_weight.checked_add(locked_vote_weight).unwrap(),
             locked_vote_weight,
             VsrError::InternalErrorBadLockupVoteWeight
         );
 
-        Ok(locked_vote_weight)
+        Ok(voting_power_locked)
     }
 
     /// Vote power contribution from locked funds only.
@@ -119,7 +114,7 @@ impl DepositEntry {
         &self,
         curr_ts: i64,
         minimum_required_lockup_secs: u64,
-        minimum_lockup_vote_weight: u64,
+        locked_vote_weight: u64,
         max_locked_vote_weight: u64,
         lockup_saturation_secs: u64,
     ) -> Result<u64> {
@@ -135,7 +130,7 @@ impl DepositEntry {
                 self.voting_power_cliff(
                   curr_ts,
                   minimum_required_lockup_secs,
-                  minimum_lockup_vote_weight,
+                  locked_vote_weight,
                   max_locked_vote_weight, 
                   lockup_saturation_secs,
                 )
@@ -144,7 +139,7 @@ impl DepositEntry {
                 self.voting_power_cliff(
                   curr_ts,
                   minimum_required_lockup_secs,
-                  minimum_lockup_vote_weight,
+                  locked_vote_weight,
                   max_locked_vote_weight, 
                   lockup_saturation_secs,
                 )
@@ -161,7 +156,7 @@ impl DepositEntry {
         curr_ts: i64,
         at_ts: i64,
         minimum_required_lockup_secs: u64,
-        minimum_lockup_vote_weight: u64,
+        locked_vote_weight: u64,
         max_locked_vote_weight: u64,
         lockup_saturation_secs: u64,
     ) -> Result<u64> {
@@ -181,7 +176,7 @@ impl DepositEntry {
         altered.voting_power_locked(
           at_ts, 
           minimum_required_lockup_secs,
-          minimum_lockup_vote_weight,
+          locked_vote_weight,
           max_locked_vote_weight, 
           lockup_saturation_secs,
         )
@@ -192,7 +187,7 @@ impl DepositEntry {
         &self,
         curr_ts: i64,
         minimum_required_lockup_secs: u64,
-        minimum_lockup_vote_weight: u64,
+        locked_vote_weight: u64,
         max_locked_vote_weight: u64,
         lockup_saturation_secs: u64,
     ) -> Result<u64> {
@@ -200,7 +195,7 @@ impl DepositEntry {
 
         if remaining > minimum_required_lockup_secs {
             Ok(u64::try_from(
-              (minimum_lockup_vote_weight as u128)
+              (locked_vote_weight as u128)
                   .checked_add(
                       (max_locked_vote_weight as u128)
                           .checked_mul(remaining.sub(minimum_required_lockup_secs) as u128)
@@ -212,7 +207,7 @@ impl DepositEntry {
             .unwrap())
         } else {
             Ok(u64::try_from(
-                (minimum_lockup_vote_weight as u128)
+                (locked_vote_weight as u128)
                     .checked_mul(remaining as u128)
                     .unwrap()
                     .checked_div(minimum_required_lockup_secs as u128)
@@ -277,7 +272,6 @@ mod tests {
                 reserved: [0; 15],
             },
             is_used: true,
-            allow_clawback: false,
             voting_mint_config_idx: 0,
             reserved: [0; 29],
         };
@@ -329,7 +323,6 @@ mod tests {
                 reserved: [0; 15],
             },
             is_used: true,
-            allow_clawback: false,
             voting_mint_config_idx: 0,
             reserved: [0; 29],
         };
@@ -337,7 +330,7 @@ mod tests {
         let voting_mint_config = VotingMintConfig {
             mint: Pubkey::default(),
             grant_authority: Pubkey::default(),
-            minimum_lockup_vote_weight_scaled_factor: 1_000_000_000, // 1x
+            locked_vote_weight_scaled_factor: 1_000_000_000, // 1x
             max_extra_lockup_vote_weight_scaled_factor: 99_000_000_000, // 99x
             lockup_saturation_secs: saturation as u64,
             minimum_required_lockup_secs: minimum_required_lockup_secs as u64,
@@ -346,8 +339,8 @@ mod tests {
             reserved2: [0; 6],
         };
 
-        let minimum_lockup_vote_weight = voting_mint_config.minimum_lockup_vote_weight(deposit.amount_deposited_native)?;
-        assert_eq!(minimum_lockup_vote_weight, 1000);
+        let locked_vote_weight = voting_mint_config.locked_vote_weight(deposit.amount_deposited_native)?;
+        assert_eq!(locked_vote_weight, 1000);
         
         let max_locked_vote_weight = voting_mint_config
             .max_extra_lockup_vote_weight(deposit.amount_initially_locked_native)?;
@@ -410,7 +403,6 @@ mod tests {
                 reserved: [0; 15],
             },
             is_used: true,
-            allow_clawback: false,
             voting_mint_config_idx: 0,
             reserved: [0; 29],
         };
@@ -418,7 +410,7 @@ mod tests {
         let voting_mint_config = VotingMintConfig {
             mint: Pubkey::default(),
             grant_authority: Pubkey::default(),
-            minimum_lockup_vote_weight_scaled_factor: 1_000_000_000, // 1x
+            locked_vote_weight_scaled_factor: 1_000_000_000, // 1x
             max_extra_lockup_vote_weight_scaled_factor: 99_000_000_000, // 99x
             lockup_saturation_secs: saturation as u64,
             minimum_required_lockup_secs: minimum_required_lockup_secs as u64,
@@ -427,8 +419,8 @@ mod tests {
             reserved2: [0; 6],
         };
 
-        let minimum_lockup_vote_weight = voting_mint_config.minimum_lockup_vote_weight(deposit.amount_deposited_native)?;
-        assert_eq!(minimum_lockup_vote_weight, 1000);
+        let locked_vote_weight = voting_mint_config.locked_vote_weight(deposit.amount_deposited_native)?;
+        assert_eq!(locked_vote_weight, 1000);
 
         let max_locked_vote_weight = voting_mint_config
             .max_extra_lockup_vote_weight(deposit.amount_initially_locked_native)?;

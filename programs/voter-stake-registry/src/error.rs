@@ -119,7 +119,4 @@ pub enum VsrError {
     // 6038 / 0x1796
     #[msg("")]
     DepositLockupLessThanVotingMintConfigMinRequired,
-    // 6039 / 0x1797
-    #[msg("")]
-    LockupMinimumVoteWeightMustBePositive
 }

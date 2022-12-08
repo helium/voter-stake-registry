@@ -81,7 +81,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             0,
             &context.mints[0],
             0,
-            0.0,
+            1.0,
             0,
             10.0, // no locking, so has no effect
             5 * 365 * 24 * 60 * 60,
@@ -147,7 +147,6 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             LockupKind::None,
             None,
             0,
-            false,
         )
         .await
         .unwrap();
@@ -155,7 +154,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
 
     let after_deposit = get_balances(0).await;
     assert_eq!(token, after_deposit.token + after_deposit.vault);
-    assert_eq!(after_deposit.voter_weight, after_deposit.vault);
+    assert_eq!(after_deposit.voter_weight, 0);
     assert_eq!(after_deposit.vault, 10000);
     assert_eq!(after_deposit.deposit, 10000);
 
@@ -164,7 +163,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
 
     let after_deposit2 = get_balances(0).await;
     assert_eq!(token, after_deposit2.token + after_deposit2.vault);
-    assert_eq!(after_deposit2.voter_weight, after_deposit2.vault);
+    assert_eq!(after_deposit2.voter_weight, 0);
     assert_eq!(after_deposit2.vault, 15000);
     assert_eq!(after_deposit2.deposit, 15000);
 
@@ -179,7 +178,6 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             LockupKind::None,
             None,
             0,
-            false,
         )
         .await
         .unwrap();
@@ -187,7 +185,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
 
     let after_deposit3 = get_balances(1).await;
     assert_eq!(token, after_deposit3.token + after_deposit3.vault);
-    assert_eq!(after_deposit3.voter_weight, after_deposit3.vault);
+    assert_eq!(after_deposit3.voter_weight, 0);
     assert_eq!(after_deposit3.vault, 22000);
     assert_eq!(after_deposit3.deposit, 7000);
 
@@ -195,7 +193,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
 
     let after_withdraw1 = get_balances(0).await;
     assert_eq!(token, after_withdraw1.token + after_withdraw1.vault);
-    assert_eq!(after_withdraw1.voter_weight, after_withdraw1.vault);
+    assert_eq!(after_withdraw1.voter_weight, 0);
     assert_eq!(after_withdraw1.vault, 12000);
     assert_eq!(after_withdraw1.deposit, 5000);
 
@@ -205,7 +203,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
 
     let after_withdraw2 = get_balances(0).await;
     assert_eq!(token, after_withdraw2.token + after_withdraw2.vault);
-    assert_eq!(after_withdraw2.voter_weight, after_withdraw2.vault);
+    assert_eq!(after_withdraw2.voter_weight, 0);
     assert_eq!(after_withdraw2.vault, 7000);
     assert_eq!(after_withdraw2.deposit, 0);
 
@@ -225,7 +223,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
 
     let after_close = get_balances(0).await;
     assert_eq!(token, after_close.token + after_close.vault);
-    assert_eq!(after_close.voter_weight, after_close.vault);
+    assert_eq!(after_close.voter_weight, 0);
     assert_eq!(after_close.vault, 7000);
     assert_eq!(after_close.deposit, 0);
 
@@ -252,7 +250,6 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             LockupKind::None,
             None,
             0,
-            false,
         )
         .await
         .unwrap();
@@ -279,7 +276,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
     )
     .await;
     assert_eq!(voter2_balances.deposit, 1000);
-    assert_eq!(voter2_balances.voter_weight, 1000);
+    assert_eq!(voter2_balances.voter_weight, 0);
     assert_eq!(voter2_balances.vault, 1000);
 
     // when voter1 deposits again, they can reuse deposit index 0
@@ -293,7 +290,6 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             LockupKind::None,
             None,
             0,
-            false,
         )
         .await
         .unwrap();
@@ -301,7 +297,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
 
     let after_reuse = get_balances(0).await;
     assert_eq!(token, after_reuse.token + 7000 + 3000);
-    assert_eq!(after_reuse.voter_weight, 7000 + 3000);
+    assert_eq!(after_reuse.voter_weight, 0);
     assert_eq!(after_reuse.vault, 7000 + 3000);
     assert_eq!(after_reuse.deposit, 3000);
 
