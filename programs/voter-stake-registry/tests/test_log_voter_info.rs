@@ -60,7 +60,7 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
     let year = 365 * day;
     let month = year / 12;
 
-    let mngo_voting_mint = addin
+    let voting_mint = addin
         .configure_voting_mint(
             &registrar,
             &realm_authority,
@@ -71,7 +71,7 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
             1.0,
             0,
             1.0,
-            0.0,
+            0,
             0,
             year,
             None,
@@ -88,7 +88,7 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
             &registrar,
             &voter,
             voter_authority,
-            &mngo_voting_mint,
+            &voting_mint,
             0,
             LockupKind::Cliff,
             None,
@@ -101,7 +101,7 @@ async fn test_log_voter_info() -> Result<(), TransportError> {
         .deposit(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             voter_authority,
             voter_mngo,
             0,

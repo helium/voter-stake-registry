@@ -73,7 +73,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
     let registrar = addin
         .create_registrar(&realm, &realm_authority, payer)
         .await;
-    let mngo_voting_mint = addin
+    let voting_mint = addin
         .configure_voting_mint(
             &registrar,
             &realm_authority,
@@ -84,7 +84,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             1.0,
             0,
             10.0, // no locking, so has no effect
-            0.0,
+            0,
             0,
             5 * 365 * 24 * 60 * 60,
             None,
@@ -107,7 +107,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             &registrar,
             reference_account,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             depot_id,
         )
     };
@@ -115,7 +115,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
         addin.withdraw(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter_authority,
             reference_account,
             0,
@@ -126,7 +126,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
         addin.deposit(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter_authority,
             reference_account,
             deposit_id,
@@ -144,7 +144,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             &registrar,
             &voter,
             &voter_authority,
-            &mngo_voting_mint,
+            &voting_mint,
             0,
             LockupKind::None,
             None,
@@ -175,7 +175,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             &registrar,
             &voter,
             &voter_authority,
-            &mngo_voting_mint,
+            &voting_mint,
             1,
             LockupKind::None,
             None,
@@ -247,7 +247,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             &registrar,
             &voter2,
             &voter2_authority,
-            &mngo_voting_mint,
+            &voting_mint,
             5,
             LockupKind::None,
             None,
@@ -259,7 +259,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
         .deposit(
             &registrar,
             &voter2,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter2_authority,
             context.users[2].token_accounts[0],
             5,
@@ -273,7 +273,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
         &registrar,
         reference_account,
         &voter2,
-        &mngo_voting_mint,
+        &voting_mint,
         5,
     )
     .await;
@@ -287,7 +287,7 @@ async fn test_deposit_no_locking() -> Result<(), TransportError> {
             &registrar,
             &voter,
             &voter_authority,
-            &mngo_voting_mint,
+            &voting_mint,
             0,
             LockupKind::None,
             None,

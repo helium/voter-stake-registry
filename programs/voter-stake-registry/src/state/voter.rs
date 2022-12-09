@@ -70,6 +70,8 @@ impl Voter {
                     locked_vote_weight,
                     max_locked_vote_weight,
                     mint_config.lockup_saturation_secs,
+                    mint_config.genesis_vote_power_multiplier,
+                    mint_config.genesis_vote_power_multiplier_expiration_ts
                 )?;
                 Ok(sum.checked_add(amount).unwrap())
             })

@@ -46,14 +46,14 @@ async fn test_basic() -> Result<(), TransportError> {
             0.0,
             0,            
             0.0,
-            0.0,
+            0,
             0,
             1,
             None,
             None,
         )
         .await;
-    let mngo_voting_mint = context
+    let voting_mint = context
         .addin
         .configure_voting_mint(
             &registrar,
@@ -65,7 +65,7 @@ async fn test_basic() -> Result<(), TransportError> {
             0.0,
             0,            
             0.0,
-            0.0,
+            0,
             0,
             5 * 365 * 24 * 60 * 60,
             None,
@@ -100,7 +100,7 @@ async fn test_basic() -> Result<(), TransportError> {
             &registrar,
             &voter,
             voter_authority,
-            &mngo_voting_mint,
+            &voting_mint,
             0,
             voter_stake_registry::state::LockupKind::Cliff,
             None,
@@ -112,7 +112,7 @@ async fn test_basic() -> Result<(), TransportError> {
         .deposit(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter_authority,
             reference_account,
             0,
@@ -125,7 +125,7 @@ async fn test_basic() -> Result<(), TransportError> {
         .token_account_balance(reference_account)
         .await;
     assert_eq!(reference_initial, reference_after_deposit + 10000);
-    let vault_after_deposit = mngo_voting_mint
+    let vault_after_deposit = voting_mint
         .vault_balance(&context.solana, &voter)
         .await;
     assert_eq!(vault_after_deposit, 10000);
@@ -137,7 +137,7 @@ async fn test_basic() -> Result<(), TransportError> {
         .withdraw(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             &&context.users[2].key,
             reference_account,
             0,
@@ -151,7 +151,7 @@ async fn test_basic() -> Result<(), TransportError> {
         .withdraw(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter_authority,
             reference_account,
             0,
@@ -164,7 +164,7 @@ async fn test_basic() -> Result<(), TransportError> {
         .token_account_balance(reference_account)
         .await;
     assert_eq!(reference_initial, reference_after_withdraw);
-    let vault_after_withdraw = mngo_voting_mint
+    let vault_after_withdraw = voting_mint
         .vault_balance(&context.solana, &voter)
         .await;
     assert_eq!(vault_after_withdraw, 0);
@@ -180,7 +180,7 @@ async fn test_basic() -> Result<(), TransportError> {
         .await?;
     context
         .addin
-        .close_voter(&registrar, &voter, &mngo_voting_mint, &voter_authority)
+        .close_voter(&registrar, &voter, &voting_mint, &voter_authority)
         .await?;
     let lamports_after = context
         .solana

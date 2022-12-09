@@ -547,6 +547,8 @@ mod tests {
           0,
           t.amount_deposited,
           MAX_SECS_LOCKED,
+          0,
+          0
         )?;
         assert_eq!(power, t.expected_voting_power);
         Ok(())

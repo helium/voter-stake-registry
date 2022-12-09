@@ -87,7 +87,7 @@ impl DepositEntry {
     /// made for the remaining time period.
     ///
     pub fn voting_power(&self, voting_mint_config: &VotingMintConfig, curr_ts: i64) -> Result<u64> {
-        let locked_vote_weight = voting_mint_config.locked_vote_weight(self.amount_deposited_native)?;
+        let locked_vote_weight = voting_mint_config.locked_vote_weight(self.amount_deposited_native)?;      
         let max_locked_vote_weight =
             voting_mint_config.max_extra_lockup_vote_weight(self.amount_initially_locked_native)?;
 
@@ -96,7 +96,9 @@ impl DepositEntry {
           voting_mint_config.minimum_required_lockup_secs,
           locked_vote_weight,
           max_locked_vote_weight,
-          voting_mint_config.lockup_saturation_secs
+          voting_mint_config.lockup_saturation_secs,
+          voting_mint_config.genesis_vote_power_multiplier,
+          voting_mint_config.genesis_vote_power_multiplier_expiration_ts,
         )?;
 
         require_gte!(
@@ -116,6 +118,8 @@ impl DepositEntry {
         locked_vote_weight: u64,
         max_locked_vote_weight: u64,
         lockup_saturation_secs: u64,
+        genesis_vote_power_multiplier: u8,
+        genesis_vote_power_multiplier_expiration_ts: i64
     ) -> Result<u64> {
         if self.lockup.expired(curr_ts) || (locked_vote_weight == 0 && max_locked_vote_weight == 0) {
             return Ok(0);
@@ -130,6 +134,8 @@ impl DepositEntry {
                   locked_vote_weight,
                   max_locked_vote_weight, 
                   lockup_saturation_secs,
+                  genesis_vote_power_multiplier,
+                  genesis_vote_power_multiplier_expiration_ts
                 )
             }
             LockupKind::Constant => {
@@ -139,6 +145,8 @@ impl DepositEntry {
                   locked_vote_weight,
                   max_locked_vote_weight, 
                   lockup_saturation_secs,
+                  genesis_vote_power_multiplier,
+                  genesis_vote_power_multiplier_expiration_ts
                 )
             }
         }
@@ -156,6 +164,8 @@ impl DepositEntry {
         locked_vote_weight: u64,
         max_locked_vote_weight: u64,
         lockup_saturation_secs: u64,
+        genesis_vote_power_multiplier: u8,
+        genesis_vote_power_multiplier_expiration_ts: i64
     ) -> Result<u64> {
         let mut altered = self.clone();
 
@@ -176,6 +186,8 @@ impl DepositEntry {
           locked_vote_weight,
           max_locked_vote_weight, 
           lockup_saturation_secs,
+          genesis_vote_power_multiplier,
+          genesis_vote_power_multiplier_expiration_ts
         )
     }
 
@@ -187,8 +199,19 @@ impl DepositEntry {
         locked_vote_weight: u64,
         max_locked_vote_weight: u64,
         lockup_saturation_secs: u64,
+        genesis_vote_power_multiplier: u8,
+        genesis_vote_power_multiplier_expiration_ts: i64,
     ) -> Result<u64> {
         let remaining = min(self.lockup.seconds_left(curr_ts), lockup_saturation_secs);
+        let genesis_multiplier = if 
+          self.lockup.start_ts < genesis_vote_power_multiplier_expiration_ts ||
+          curr_ts < genesis_vote_power_multiplier_expiration_ts as i64 &&
+          genesis_vote_power_multiplier > 0
+         { 
+          genesis_vote_power_multiplier 
+        } else { 
+          1 
+        };
 
         if remaining > minimum_required_lockup_secs {
             Ok(u64::try_from(
@@ -198,8 +221,8 @@ impl DepositEntry {
                           .checked_mul(remaining.sub(minimum_required_lockup_secs) as u128)
                           .unwrap()
                           .checked_div(lockup_saturation_secs.sub(minimum_required_lockup_secs) as u128)
-                          .unwrap(),
-                  ).unwrap()
+                          .unwrap()
+                  ).unwrap().checked_mul(genesis_multiplier as u128).unwrap()
             )
             .unwrap())
         } else {
@@ -208,7 +231,7 @@ impl DepositEntry {
                     .checked_mul(remaining as u128)
                     .unwrap()
                     .checked_div(minimum_required_lockup_secs as u128)
-                    .unwrap(),
+                    .unwrap().checked_mul(genesis_multiplier as u128).unwrap()
             )
             .unwrap())
         }
@@ -316,7 +339,9 @@ mod tests {
                     minimum_required_lockup_secs,
                     1,
                     99,
-                    saturation
+                    saturation,
+                    0,
+                    0,
                 )
                 .unwrap()
         };
@@ -361,13 +386,13 @@ mod tests {
 
         let voting_mint_config = VotingMintConfig {
             mint: Pubkey::default(),
-            grant_authority: Pubkey::default(),
+            grant_authority: Pubkey::default(),            
             locked_vote_weight_scaled_factor: 1_000_000_000, // 1x
-            max_extra_lockup_vote_weight_scaled_factor: 99_000_000_000, // 99x
-            genesis_extra_lockup_vote_weight_scaled_factor: 0,
-            genesis_extra_lockup_expiration_secs: 0,
-            lockup_saturation_secs: saturation as u64,
             minimum_required_lockup_secs: minimum_required_lockup_secs as u64,
+            max_extra_lockup_vote_weight_scaled_factor: 99_000_000_000, // 99x
+            genesis_vote_power_multiplier: 0,
+            genesis_vote_power_multiplier_expiration_ts: 0,
+            lockup_saturation_secs: saturation as u64,
             digit_shift: 0,
             reserved1: [0; 7],
             reserved2: [0; 4],
@@ -446,8 +471,8 @@ mod tests {
             grant_authority: Pubkey::default(),
             locked_vote_weight_scaled_factor: 1_000_000_000, // 1x
             max_extra_lockup_vote_weight_scaled_factor: 99_000_000_000, // 99x
-            genesis_extra_lockup_vote_weight_scaled_factor: 0,
-            genesis_extra_lockup_expiration_secs: 0,
+            genesis_vote_power_multiplier: 0,
+            genesis_vote_power_multiplier_expiration_ts: 0,
             lockup_saturation_secs: saturation as u64,
             minimum_required_lockup_secs: minimum_required_lockup_secs as u64,
             digit_shift: 0,

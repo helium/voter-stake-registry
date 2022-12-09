@@ -67,7 +67,7 @@ async fn test_deposit_constant() -> Result<(), TransportError> {
     let registrar = addin
         .create_registrar(&realm, &realm_authority, payer)
         .await;
-    let mngo_voting_mint = addin
+    let voting_mint = addin
         .configure_voting_mint(
             &registrar,
             &realm_authority,
@@ -78,7 +78,7 @@ async fn test_deposit_constant() -> Result<(), TransportError> {
             1.0,
             0, // no minimum
             1.0,
-            0.0,
+            0,
             0,
             2 * 24 * 60 * 60,
             None,
@@ -97,7 +97,7 @@ async fn test_deposit_constant() -> Result<(), TransportError> {
             &registrar,
             reference_account,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             depot_id,
         )
     };
@@ -105,7 +105,7 @@ async fn test_deposit_constant() -> Result<(), TransportError> {
         addin.withdraw(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter_authority,
             reference_account,
             0,
@@ -116,7 +116,7 @@ async fn test_deposit_constant() -> Result<(), TransportError> {
         addin.deposit(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter_authority,
             reference_account,
             0,
@@ -135,7 +135,7 @@ async fn test_deposit_constant() -> Result<(), TransportError> {
             &registrar,
             &voter,
             &voter_authority,
-            &mngo_voting_mint,
+            &voting_mint,
             0,
             voter_stake_registry::state::LockupKind::Constant,
             None,

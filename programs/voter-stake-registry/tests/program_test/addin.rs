@@ -102,8 +102,8 @@ impl AddinCookie {
         locked_vote_weight_scaled_factor: f64,
         minimum_required_lockup_secs: u64,        
         max_extra_lockup_vote_weight_scaled_factor: f64,
-        genesis_extra_lockup_vote_weight_scaled_factor: f64,
-        genesis_extra_lockup_expiration_secs: u64,
+        genesis_vote_power_multiplier: u8,
+        genesis_vote_power_multiplier_expiration_ts: i64,
         lockup_saturation_secs: u64,
         grant_authority: Option<Pubkey>,
         other_mints: Option<&[Pubkey]>,    
@@ -119,8 +119,8 @@ impl AddinCookie {
                 minimum_required_lockup_secs,
                 max_extra_lockup_vote_weight_scaled_factor:
                     (max_extra_lockup_vote_weight_scaled_factor * 1e9) as u64,
-                genesis_extra_lockup_vote_weight_scaled_factor: (genesis_extra_lockup_vote_weight_scaled_factor * 1e9) as u64,
-                genesis_extra_lockup_expiration_secs,
+                genesis_vote_power_multiplier,
+                genesis_vote_power_multiplier_expiration_ts,
                 lockup_saturation_secs,
                 grant_authority
             },

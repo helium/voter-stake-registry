@@ -36,7 +36,7 @@ async fn test_all_deposits() -> Result<(), TransportError> {
         .await;
     let day = 24 * 60 * 60;
     let year = 365 * day;
-    let mngo_voting_mint = addin
+    let voting_mint = addin
         .configure_voting_mint(
             &registrar,
             &realm_authority,
@@ -47,7 +47,7 @@ async fn test_all_deposits() -> Result<(), TransportError> {
             1.0,
             0,
             0.0,
-            0.0,
+            0,
             0,
             5 * year,
             None,
@@ -65,7 +65,7 @@ async fn test_all_deposits() -> Result<(), TransportError> {
         addin.withdraw(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter_authority,
             reference_account,
             0,
@@ -79,7 +79,7 @@ async fn test_all_deposits() -> Result<(), TransportError> {
                 &registrar,
                 &voter,
                 voter_authority,
-                &mngo_voting_mint,
+                &voting_mint,
                 i,
                 LockupKind::Cliff,
                 None,
@@ -91,7 +91,7 @@ async fn test_all_deposits() -> Result<(), TransportError> {
             .deposit(
                 &registrar,
                 &voter,
-                &mngo_voting_mint,
+                &voting_mint,
                 voter_authority,
                 voter_mngo,
                 i,

@@ -39,7 +39,7 @@ async fn test_voting() -> Result<(), TransportError> {
     let registrar = addin
         .create_registrar(&realm, &realm_authority, payer)
         .await;
-    let mngo_voting_mint = addin
+    let voting_mint = addin
         .configure_voting_mint(
             &registrar,
             &realm_authority,
@@ -50,7 +50,7 @@ async fn test_voting() -> Result<(), TransportError> {
             2.0,
             0,            
             0.0,
-            0.0,
+            0,
             0,
             5 * 365 * 24 * 60 * 60,
             None,
@@ -68,7 +68,7 @@ async fn test_voting() -> Result<(), TransportError> {
             0.0,
             0,          
             0.0,
-            0.0,
+            0,
             0,
             5 * 365 * 24 * 60 * 60,
             None,
@@ -102,7 +102,7 @@ async fn test_voting() -> Result<(), TransportError> {
             &registrar,
             &voter,
             voter_authority,
-            &mngo_voting_mint,
+            &voting_mint,
             0,
             LockupKind::None,
             None,
@@ -114,7 +114,7 @@ async fn test_voting() -> Result<(), TransportError> {
         .deposit(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             voter_authority,
             voter_mngo,
             0,
@@ -141,7 +141,7 @@ async fn test_voting() -> Result<(), TransportError> {
         .deposit(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             voter_authority,
             voter_mngo,
             0,
@@ -168,7 +168,7 @@ async fn test_voting() -> Result<(), TransportError> {
         .withdraw(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter_authority,
             voter_mngo,
             0,
@@ -182,7 +182,7 @@ async fn test_voting() -> Result<(), TransportError> {
             &registrar,
             &voter2,
             voter2_authority,
-            &mngo_voting_mint,
+            &voting_mint,
             0,
             LockupKind::Cliff,
             None,
@@ -194,7 +194,7 @@ async fn test_voting() -> Result<(), TransportError> {
         .deposit(
             &registrar,
             &voter2,
-            &mngo_voting_mint,
+            &voting_mint,
             voter_authority,
             voter_mngo,
             0,
@@ -254,7 +254,7 @@ async fn test_voting() -> Result<(), TransportError> {
         .withdraw(
             &registrar,
             &voter2,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter2_authority,
             voter_mngo,
             0,
@@ -293,7 +293,7 @@ async fn test_voting() -> Result<(), TransportError> {
         .withdraw(
             &registrar,
             &voter2,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter2_authority,
             voter_mngo,
             0,
@@ -313,7 +313,7 @@ async fn test_voting() -> Result<(), TransportError> {
         .withdraw(
             &registrar,
             &voter2,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter2_authority,
             voter_mngo,
             0,

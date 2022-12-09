@@ -58,7 +58,7 @@ async fn test_reset_lockup() -> Result<(), TransportError> {
     let registrar = addin
         .create_registrar(&realm, &realm_authority, payer)
         .await;
-    let mngo_voting_mint = addin
+    let voting_mint = addin
         .configure_voting_mint(
             &registrar,
             &realm_authority,
@@ -69,7 +69,7 @@ async fn test_reset_lockup() -> Result<(), TransportError> {
             1.0,
             0,            
             0.0,
-            0.0,
+            0,
             0,
             5 * 365 * 24 * 60 * 60,
             None,
@@ -86,7 +86,7 @@ async fn test_reset_lockup() -> Result<(), TransportError> {
         addin.withdraw(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter_authority,
             reference_account,
             index,
@@ -97,7 +97,7 @@ async fn test_reset_lockup() -> Result<(), TransportError> {
         addin.deposit(
             &registrar,
             &voter,
-            &mngo_voting_mint,
+            &voting_mint,
             &voter_authority,
             reference_account,
             index,
@@ -124,7 +124,7 @@ async fn test_reset_lockup() -> Result<(), TransportError> {
             &registrar,
             &voter,
             &voter_authority,
-            &mngo_voting_mint,
+            &voting_mint,
             5,
             LockupKind::Cliff,
             None,
