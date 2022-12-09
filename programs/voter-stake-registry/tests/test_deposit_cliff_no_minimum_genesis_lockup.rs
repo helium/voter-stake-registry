@@ -2,6 +2,9 @@ use anchor_spl::token::TokenAccount;
 use program_test::*;
 use solana_program_test::*;
 use solana_sdk::{pubkey::Pubkey, signature::Keypair, signer::Signer, transport::TransportError};
+use std::cell::RefCell;
+use std::sync::Arc;
+use voter_stake_registry::state::LockupKind;
 
 mod program_test;
 
@@ -81,7 +84,7 @@ async fn test_deposit_cliff() -> Result<(), TransportError> {
             0,
             1.0,
             3,
-            now + 24 * 60 * 60,
+            now + 24 * 60 * 60, // 1 day genesis period
             2 * 24 * 60 * 60,
             None,
             None,
@@ -126,6 +129,18 @@ async fn test_deposit_cliff() -> Result<(), TransportError> {
         )
     };
 
+    let reset_lockup = |index: u8, periods: u32, kind: LockupKind| {
+        addin.reset_lockup(&registrar, &voter, &voter_authority, index, kind, periods)
+    };    
+    let time_offset = Arc::new(RefCell::new(0i64));
+    let advance_time = |extra: u64| {
+        *time_offset.borrow_mut() += extra as i64;
+        addin.set_time_offset(&registrar, &realm_authority, *time_offset.borrow())
+    };
+
+    let day = 24 * 60 * 60;
+    let hour = 60 * 60;    
+
     // test deposit and withdraw
     let token = context
         .solana
@@ -139,7 +154,7 @@ async fn test_deposit_cliff() -> Result<(), TransportError> {
             &voter_authority,
             &voting_mint,
             0,
-            voter_stake_registry::state::LockupKind::Cliff,
+            LockupKind::Cliff,
             None,
             3, // days
         )
@@ -157,34 +172,53 @@ async fn test_deposit_cliff() -> Result<(), TransportError> {
     withdraw(1).await.expect_err("nothing vested yet");
 
     // advance a day
-    addin
-        .set_time_offset(&registrar, &realm_authority, 24 * 60 * 60)
-        .await;
+    advance_time(day).await;
+    context.solana.advance_clock_by_slots(2).await;        
     let after_day1 = get_balances(0).await;
     assert_eq!(after_day1.voter_weight, (2 * after_day1.vault) * 3); // still saturated and genesis
 
     // advance a second day
-    addin
-        .set_time_offset(&registrar, &realm_authority, 48 * 60 * 60)
-        .await;
+    advance_time(day).await;
+    context.solana.advance_clock_by_slots(2).await;            
     let after_day2 = get_balances(0).await;
-    assert_eq!(after_day2.voter_weight, (3 * after_day2.vault / 2) * 3); // locking half done
+    assert_eq!(after_day2.voter_weight, (3 * after_day2.vault / 2) * 3); // locking half done and genesis
 
     // advance to almost three days
-    addin
-        .set_time_offset(&registrar, &realm_authority, 71 * 60 * 60)
-        .await;
+    advance_time(day - hour).await;
+    context.solana.advance_clock_by_slots(2).await;
+
+    withdraw(1).await.expect_err("nothing vested yet");
+
+    reset_lockup(0, 3, LockupKind::Cliff).await.unwrap(); // just resets start to current timestamp
+    let after_reset = get_balances(0).await;
+    assert_eq!(token, after_reset.token + after_reset.vault);
+    assert_eq!(after_reset.voter_weight, (2 * after_reset.vault)); // saturated and lost genesis
+    assert_eq!(after_reset.vault, 9000);
+    assert_eq!(after_reset.deposit, 9000);
+
+    // advance a day
+    advance_time(day).await;
+    context.solana.advance_clock_by_slots(2).await;        
+    let after_day1 = get_balances(0).await;
+    assert_eq!(after_day1.voter_weight, (2 * after_day1.vault)); // still saturated and 0 genesis
+
+    // advance a second day
+    advance_time(day).await;
+    context.solana.advance_clock_by_slots(2).await;            
+    let after_day2 = get_balances(0).await;
+    assert_eq!(after_day2.voter_weight, (3 * after_day2.vault / 2)); // locking half done and 0 genesis
+
+    // advance to almost three days
+    advance_time(day - hour).await;
     context.solana.advance_clock_by_slots(2).await;
 
     withdraw(1).await.expect_err("nothing vested yet");
 
     // deposit some more
-    deposit(1000).await.unwrap();
+    deposit(1000).await.unwrap();    
 
     // advance more than three days
-    addin
-        .set_time_offset(&registrar, &realm_authority, 73 * 60 * 60)
-        .await;
+    advance_time(day).await;
     context.solana.advance_clock_by_slots(2).await;
 
     let after_cliff = get_balances(0).await;

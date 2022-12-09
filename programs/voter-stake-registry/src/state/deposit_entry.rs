@@ -51,23 +51,23 @@ impl DepositEntry {
     ///
     /// If remaining time is > minimum_required_lockup_secs
     /// ```
-    ///    voting_power = locked_vote_weight + (lockup_duration_factor * max_extra_lockup_vote_weight))
+    ///    voting_power = (locked_vote_weight + (lockup_duration_factor * max_extra_lockup_vote_weight))) * genesis_vote_power_multiplier
     /// ```
     /// 
     /// with
     ///   - lockup_duration_factor = min((lockup_time_remaining - minimum_required_lockup_secs) / (lockup_saturation_secs - minimum_required_lockup_secs), 1)
     ///   - the VotingMintConfig providing the values for
-    ///     locked_vote_weight, minimum_required_lockup_secs, max_extra_lockup_vote_weight, lockup_saturation_secs
+    ///     locked_vote_weight, minimum_required_lockup_secs, max_extra_lockup_vote_weight, lockup_saturation_secs, genesis_vote_power_multiplier
     /// 
     /// If remaining time is <= minimum_required_lockup_secs
     /// ```
-    ///    voting_power = lockup_duration_factor * locked_vote_weight
+    ///    voting_power = (lockup_duration_factor * locked_vote_weight) * genesis_vote_power_multiplier
     /// ```
     /// 
     /// with
     ///   - lockup_duration_factor = min(lockup_time_remaining / minimum_required_lockup_secs, 1)
     ///   - the VotingMintConfig providing the values for
-    ///     locked_vote_weight, minimum_required_lockup_secs
+    ///     locked_vote_weight, minimum_required_lockup_secs, genesis_vote_power_multiplier
     ///
     /// Linear vesting schedules can be thought of as a sequence of cliff-
     /// locked tokens and have the matching voting weight.
