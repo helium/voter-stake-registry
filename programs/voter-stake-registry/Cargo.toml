@@ -39,7 +39,7 @@ bytemuck = "1.9.1"
 spl-governance = { version = "=2.2.1", features = ["no-entrypoint"] }
 spl-governance-addin-api = "=0.1.1"
 
-solana-program = "1.1.14"
+solana-program = "1.13.5"
 static_assertions = "1.1"
 
 [dev-dependencies]
